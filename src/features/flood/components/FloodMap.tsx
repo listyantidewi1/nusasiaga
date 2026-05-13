@@ -1,0 +1,67 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import { floodReports } from "@/lib/flood-reports";
+import { scenarioASynthesis } from "@/lib/synthesis-scenario-a";
+import { FloodMapLegend } from "./FloodMapLegend";
+
+const FloodMapClient = dynamic(
+  () => import("./FloodMapClient").then((mod) => mod.FloodMapClient),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[420px] w-full items-center justify-center bg-slate-900 text-sm text-slate-400">
+        Loading Jakarta operational map...
+      </div>
+    ),
+  },
+);
+
+export function FloodMap() {
+  const immediateZones = scenarioASynthesis.priority_zones.filter(
+    (z) => z.evacuation_priority === "immediate",
+  ).length;
+
+  return (
+    <section className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl">
+      <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">
+            Central Jakarta — Active Flood Response
+          </h2>
+          <p className="mt-1 text-sm text-slate-400">
+            {floodReports.length} field reports plotted;{" "}
+            {scenarioASynthesis.priority_zones.length} priority zones
+            identified by Gemma 4 synthesis.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <div className="rounded-full border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm text-sky-200">
+            Scenario A
+          </div>
+          {immediateZones > 0 && (
+            <div className="rounded-full border border-red-400/30 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+              {immediateZones} immediate-evac zone{immediateZones === 1 ? "" : "s"}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
+          <FloodMapClient />
+        </div>
+
+        <div className="space-y-4">
+          <FloodMapLegend />
+          <div className="rounded-2xl border border-sky-400/20 bg-sky-500/10 p-4 text-sm text-sky-100">
+            Each marker is one field report from a responder phone. Larger,
+            darker markers indicate severity 4-5. Priority zones identified
+            by Gemma 4 31B are listed in the Command Center Synthesis panel
+            below.
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

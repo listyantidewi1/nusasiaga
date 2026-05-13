@@ -1,34 +1,34 @@
-import { BrainCircuit, ClipboardList, DatabaseZap, Radio } from "lucide-react";
+import { BrainCircuit, GitBranch, Smartphone, Zap } from "lucide-react";
 import { OfflineCapabilityCard } from "./OfflineCapabilityCard";
 
 const capabilities = [
   {
+    icon: Smartphone,
+    title: "Field tier · Gemma 4 E2B",
+    description:
+      "On-device inference via Google AI Edge LiteRT. ~1.5GB Q4 model accepts a photo plus optional voice note and produces a structured EdgeTriageReport in under 5 seconds. Fully offline.",
+    status: "Edge",
+  },
+  {
     icon: BrainCircuit,
-    title: "Local AI Analysis",
+    title: "Sync tier · Gemma 4 31B",
     description:
-      "Gemma via Ollama can analyze field reports locally when the responder device has the model installed.",
-    status: "Ready",
+      "When connectivity returns, queued reports flow to the command-center model. 128k context, 4-bit quantized via Unsloth on 2× T4. Cross-report synthesis with reasoning trace.",
+    status: "Cloud",
   },
   {
-    icon: Radio,
-    title: "Low-Bandwidth Report Mode",
+    icon: GitBranch,
+    title: "Intelligent routing",
     description:
-      "The command center is structured around compact text reports that can move through unreliable connections.",
-    status: "Designed",
+      "Every report carries the on-device model's own routing recommendation. The app layer combines that with cross-report context (recurring location, low confidence, trapped persons) to decide fast lane vs deep lane.",
+    status: "Live",
   },
   {
-    icon: DatabaseZap,
-    title: "Cached Safety Guidance",
+    icon: Zap,
+    title: "Same family, top to bottom",
     description:
-      "Core safety recommendations remain available through the local fallback path when AI services are unreachable.",
-    status: "Fallback",
-  },
-  {
-    icon: ClipboardList,
-    title: "Field Responder Workflow",
-    description:
-      "Incident updates, map context, analyzer output, and readiness checks support repeated response operations.",
-    status: "MVP",
+      "E2B on the phone shares architecture, tokenizer, and chat template with the 31B in the cloud. One JSON contract: EdgeTriageReport → CommandCenterSynthesis.",
+    status: "Open",
   },
 ];
 
@@ -38,14 +38,15 @@ export function OfflineResiliencePanel() {
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">
-            Offline Resilience
+            Architecture · Same Gemma 4 family, edge to cloud
           </h2>
           <p className="mt-1 text-sm text-slate-300">
-            Built for disaster response workflows where connectivity can fail.
+            Designed for the moments connectivity fails — where disaster
+            coordination matters most.
           </p>
         </div>
         <div className="rounded-full border border-emerald-400/30 bg-slate-950/50 px-4 py-2 text-sm text-emerald-200">
-          Offline-first MVP
+          Apache 2.0 · Open weights
         </div>
       </div>
 

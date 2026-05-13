@@ -1,102 +1,120 @@
-# NusaSiaga
+# NusaSiaga · Gemma Rescue Grid
 
-**Offline-first disaster response and environmental intelligence for resilient communities.**
+**Two-track disaster intelligence platform powered by Gemma 4. Live wildfire monitoring across Indonesia plus offline-edge flood response with on-device Gemma 4 triage.**
 
-NusaSiaga is a disaster intelligence platform that helps communities, volunteers, and local responders understand environmental threats — especially wildfires and smoke hazards — across Indonesia. The system combines real-time NASA satellite fire detection, reproducible data pipelines, and local AI-assisted hazard analysis.
+A submission to [The Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon) targeting the Global Resilience track. NusaSiaga combines two complementary disaster-response capabilities in a single operational dashboard:
+
+- **Wildfire Monitoring tab** — Real-time NASA FIRMS satellite hotspot data across Indonesia, with FRP-weighted risk scoring and provincial classification.
+- **Flood Response Demo tab** — Pre-baked Scenario A synthesis from the hybrid Gemma 4 architecture: E2B on responder phones (offline) → 31B in command center (cloud) → this dashboard (ops UI).
 
 ---
 
-## What's New — Pipeline v2
+## Why two tracks
 
-- **Live NASA FIRMS API** — real-time VIIRS/SNPP satellite hotspot data, auto-refreshed every 30 minutes
+Disasters in Indonesia are not one thing. Wildfires across Kalimantan and Sumatera need different intelligence than rapid-onset floods in central Jakarta. **The two tabs demonstrate that the same NusaSiaga dashboard can serve as the ops UI for fundamentally different disaster types** — wildfires with live satellite feeds, floods with synthesized field reports — without rewriting the platform.
+
+Both tracks share the same operational aesthetic, the same Gemma 4 reasoning capability, and the same offline-first design philosophy.
+
+---
+
+## Track A — Wildfire Monitoring (live NASA FIRMS)
+
+- **Live NASA FIRMS API** — VIIRS/SNPP satellite hotspot data, refreshed every 30 minutes
 - **FRP-weighted risk scoring** — Fire Radiative Power as primary intensity metric
-- **Peatland detection** — identifies high-carbon fire zones across Kalimantan and Sumatera
+- **Peatland detection** — identifies high-carbon fire zones
 - **Province/regency classification** — 60+ bounding boxes covering all Indonesian provinces
 - **Environmental impact estimates** — CO₂ release, smoke plume radius, AQI risk level
 - **3-tier fallback** — NASA FIRMS live → notebook JSON → demo data
-
----
-
-## Problem Statement
-
-Disaster response teams often operate with fragmented information, limited connectivity, and delayed environmental intelligence. During wildfire, smoke, flood, or pollution events, communities need fast situational awareness that works even when cloud connectivity is unreliable.
-
----
-
-## Solution Overview
-
-NusaSiaga provides a modern dashboard for disaster intelligence workflows:
-
-- Real-time wildfire hotspot map powered by NASA FIRMS satellite data
-- Deterministic risk scoring: FRP (40%) + brightness (25%) + confidence (20%) + proximity (15%)
-- Local Gemma/Ollama AI for offline hazard analysis
-- Reproducible Jupyter notebook pipeline for data processing
-- Offline-first design — full fallback chain if live data unavailable
-
----
-
-## Key Features
-
-- **Live NASA FIRMS map** — VIIRS/SNPP real-time hotspot detection across Indonesia
-- **Badge system** — "● Live NASA FIRMS" / "Notebook output" / "Demo fallback"
-- **↻ Refresh button** — manual live data refresh
-- **Severity summary** — CRITICAL / HIGH / MEDIUM / LOW counts with FRP stats
 - **AI Hazard Analyzer** — local Gemma/Ollama integration with safe fallback
-- **Environmental impact** — smoke hazard, CO₂ estimate, evacuation recommendations
-- **Province summaries** — per-province hotspot aggregation
-- **Offline resilience** — full pipeline fallback, no single point of failure
 
----
+NASA FIRMS work by [@NoesaaDecodes](https://github.com/NoesaaDecodes).
 
-## Tech Stack
+## Track B — Offline-Edge Flood Response (Gemma 4 hybrid)
 
-- Next.js 16 App Router
-- React 19 + TypeScript
-- Tailwind CSS 4
-- React Leaflet + Leaflet
-- NASA FIRMS API (VIIRS/SNPP NRT)
-- Ollama local AI API — Gemma `gemma3n:e2b`
-- Jupyter notebook pipeline (Python, no ML dependencies)
+- **Edge tier:** Gemma 4 E2B on Android via Google AI Edge LiteRT, fully offline. Photo + voice/text → structured `EdgeTriageReport` JSON in under 5 seconds on a mid-range phone.
+- **Sync tier:** Gemma 4 31B (Unsloth 4-bit, 2× T4 on Kaggle) consolidates queued reports into a single `CommandCenterSynthesis` JSON with priority zones, recommended actions, and validity flags.
+- **Intelligent routing (Cactus Prize hook):** every report carries the on-device model's own routing recommendation. The app layer combines this with cross-report context (recurring location, low confidence, trapped persons) to decide fast lane (local action) vs deep lane (queue for 31B synthesis).
+- **One JSON contract** — same Gemma 4 family, same schema, top to bottom.
+
+Pre-baked demo: 12 field reports from Scenario A (rapid-onset Jakarta flood, 90-minute window). The synthesis JSON shown was produced by Gemma 4 E4B on Colab; will be regenerated from 31B on Kaggle for the final submission.
+
+Gemma Rescue Grid work in [listyantidewi1/gemma-disaster-grid](https://github.com/listyantidewi1/gemma-disaster-grid).
 
 ---
 
 ## Architecture
 
 ```
-NASA FIRMS API (live)
-      ↓
-/api/firms  ←── 30min cache
-      ↓
-page.tsx (server fetch)
-      ↓ fallback
-outputs/dashboard_hotspots.json  ←── notebook pipeline
-      ↓ fallback
-Demo hotspot data
+┌─────────────────────────────────┐    ┌─────────────────────────────────────────┐
+│  NASA FIRMS API (satellite)     │    │  Field responder phone (offline)         │
+│       │                         │    │       │                                  │
+│       ▼                         │    │       ▼                                  │
+│  /api/firms  ← 30min cache      │    │  Gemma 4 E2B (LiteRT)                    │
+│       │                         │    │       │                                  │
+│       │ fallback                │    │       │ sync when online                 │
+│       ▼                         │    │       ▼                                  │
+│  Notebook JSON → Demo data      │    │  Gemma 4 31B (Kaggle, Unsloth)           │
+│       │                         │    │       │                                  │
+│       ▼                         │    │       ▼                                  │
+│  Wildfire Monitoring tab        │    │  Flood Response Demo tab                 │
+└─────────────────────────────────┘    └─────────────────────────────────────────┘
+              \                              /
+               \                            /
+                ▼                          ▼
+        ┌─────────────────────────────────────┐
+        │   NusaSiaga · Gemma Rescue Grid     │
+        │   (Next.js, Tailwind, Vercel)       │
+        └─────────────────────────────────────┘
+```
 
+### File structure
+
+```
 src/
   app/
     api/
-      analyze/      Local Gemma AI route
-      firms/        NASA FIRMS live data route
-    page.tsx        Server-rendered dashboard
+      firms/        Live NASA FIRMS proxy
+      analyze/      Ollama local-AI route
+    page.tsx        Server-side data fetch + TabbedDashboard
+    layout.tsx
+  components/shared/  AppHeader, Metric
   features/
-    maps/           React Leaflet disaster map
-    dashboard/      Hero and stats UI
-    hazard-analysis/ AI analyzer panel
-    environment/    Environmental intelligence
+    dashboard/      Hero, Overview, HazardAnalyzer (wildfire), TabbedDashboard
+    demo/           DemoReadinessPanel
+    environment/    Wildfire env stats + cards
+    hazard-analysis/  Wildfire analyzer panel
+    incidents/      Wildfire incident feed
+    maps/           Wildfire DisasterMap + Client + Legend
+    offline/        Shared OfflineResiliencePanel
+    reports/        Wildfire ReportGrid + Card
+    wildfire/       Composition: WildfireView
+    flood/          Gemma Rescue Grid track
+      FloodHero, FloodMap, FloodMapClient, FloodMapLegend
+      FloodSynthesisPanel, FloodReportFeed, FloodReportCard
+      FloodStats, FloodSampleCard, FloodView
   lib/
-    dashboard-hotspots.ts  Data loader with fallback chain
+    dashboard-hotspots.ts   NASA FIRMS data loader + fallback chain
+    reports.ts              Original wildfire mock data
+    flood-reports.ts        12 EdgeTriageReports from Scenario A
+    synthesis-scenario-a.ts CommandCenterSynthesis output
+    types.ts                Pydantic-mirrored schemas
   ai/
-    gemma/          Prompt construction
-    ollama/         Ollama API client
+    gemma/, ollama/         Wildfire Ollama integration
 notebooks/
-  nusasiaga_gemma_pipeline.ipynb  Full processing pipeline
-outputs/
-  dashboard_hotspots.json         Notebook-generated hotspot data
-  gemma_prompt_examples.json      Gemma reasoning prompts
-data/
-  firms_hotspots.csv              NASA FIRMS CSV (offline use)
+  nusasiaga_gemma_pipeline.ipynb   Wildfire processing pipeline
 ```
+
+---
+
+## Tech Stack
+
+- Next.js 16 App Router · React 19 · TypeScript
+- Tailwind CSS 4 · Lucide-react · Framer Motion
+- React Leaflet for both maps
+- NASA FIRMS API (VIIRS/SNPP NRT) for live wildfires
+- Gemma 4 E2B (LiteRT) for on-device edge inference
+- Gemma 4 31B (Unsloth 4-bit) for cloud synthesis
+- Ollama (gemma3n:e2b) for local AI hazard analysis
 
 ---
 
@@ -107,67 +125,43 @@ npm install
 npm run dev
 ```
 
-Open: `http://localhost:3000`
+Open <http://localhost:3000>.
 
-Quality checks:
 ```bash
 npm run lint
 npm run build
 ```
 
----
+The dashboard defaults to the **Flood Response Demo** tab. Click the tab pill at the top to switch to **Wildfire Monitoring**.
 
-## NASA FIRMS API Setup
+### NASA FIRMS API setup (Wildfire tab live data)
 
-1. Get a free MAP KEY at: https://firms.modaps.eosdis.nasa.gov/api/area/
-2. Create `.env.local` in project root:
+1. Get a free MAP KEY: <https://firms.modaps.eosdis.nasa.gov/api/area/>
+2. `.env.local` in project root:
    ```
    NASA_FIRMS_MAP_KEY=your_key_here
    ```
-3. Restart dev server — live data loads automatically
+3. Restart dev server.
 
-Without a MAP KEY, the dashboard falls back to notebook JSON output or demo data.
-
----
-
-## Local AI Setup
-
-For Ollama/Gemma setup on Windows, see: [docs/LOCAL_AI_SETUP.md](docs/LOCAL_AI_SETUP.md)
-
-```bash
-ollama pull gemma3n:e2b
-ollama serve
-```
-
----
-
-## Notebook Pipeline
-
-The notebook processes raw NASA FIRMS data into structured JSON for the dashboard:
-
-```bash
-cd notebooks
-jupyter notebook nusasiaga_gemma_pipeline.ipynb
-# Run All Cells
-```
-
-See [notebooks/README.md](notebooks/README.md) for full documentation.
+Without a key, the wildfire tab falls back to notebook JSON or demo data.
 
 ---
 
 ## Hackathon Positioning — Gemma 4 Good
 
-NusaSiaga is positioned for **Global Resilience** challenges:
+Track: **Global Resilience**.
 
-- Offline-first disaster response for low-connectivity environments
-- Environmental intelligence for wildfire and smoke hazard monitoring
-- Local AI safety guidance via Gemma — no cloud dependency required
-- Reproducible open-data pipeline using NASA FIRMS satellite data
-- Community and volunteer coordination focus
+Stackable Special Tech: **Cactus Prize** — best local-first mobile application that intelligently routes tasks between models. Our hybrid E2B-on-phone + 31B-in-cloud architecture with visible routing decisions is the canonical example.
+
+Aspirational: **Main Track** — both prizes together if execution is top-tier.
 
 ---
 
 ## Founders
 
-- Noesaa Decodes — noesaaerp@gmail.com
-- Listyantidewi — listyantidewi@gmail.com
+- Listyantidewi — <listyantidewi@gmail.com>
+- Noesaa Decodes — <noesaaerp@gmail.com>
+
+## License
+
+Code: Apache 2.0. Winning Submission per Kaggle rules: CC-BY 4.0.
