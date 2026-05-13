@@ -5,21 +5,24 @@ import { FloodSampleCard } from "./FloodSampleCard";
 import { FloodScenarioProvider } from "./FloodScenarioContext";
 import { FloodStats } from "./FloodStats";
 import { FloodSynthesisPanel } from "./FloodSynthesisPanel";
-import { ScenarioPicker } from "./ScenarioPicker";
 import { OfflineResiliencePanel } from "@/features/offline/components/OfflineResiliencePanel";
+import type { ScenarioId } from "@/lib/scenarios";
+
+type FloodViewProps = {
+  initial?: ScenarioId;
+};
 
 /**
- * The Flood Response demo tab: scenario-aware operational view of
- * disaster reports flowing through the hybrid Gemma 4 architecture.
+ * Flood Response composition. Wraps children in FloodScenarioProvider so
+ * the synthesis-aware components read the active scenario from context.
  *
- * Wraps every child in <FloodScenarioProvider> so the ScenarioPicker
- * + every flood-namespaced component share one piece of state: which
- * scenario (A/B/C) is currently active.
+ * The top-level UnifiedDashboard handles the disaster-type / scenario
+ * picker; this view just renders the panels for whatever scenario its
+ * parent decided.
  */
-export function FloodView() {
+export function FloodView({ initial = "A" }: FloodViewProps) {
   return (
-    <FloodScenarioProvider initial="A">
-      <ScenarioPicker />
+    <FloodScenarioProvider initial={initial}>
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <FloodHero />
         <FloodSampleCard />

@@ -1,5 +1,5 @@
 import { AppHeader } from "@/components/shared/AppHeader";
-import { TabbedDashboard } from "@/features/dashboard/components/TabbedDashboard";
+import { UnifiedDashboard } from "@/features/dashboard/components/UnifiedDashboard";
 import { FloodView } from "@/features/flood/components/FloodView";
 import { WildfireView } from "@/features/wildfire/components/WildfireView";
 import { loadDashboardHotspots } from "@/lib/dashboard-hotspots";
@@ -24,7 +24,7 @@ async function fetchLiveHotspots() {
 }
 
 export default async function Home() {
-  // Wildfire tab data: NASA FIRMS live -> notebook JSON -> demo fallback.
+  // Wildfire view data: NASA FIRMS live -> notebook JSON -> demo fallback.
   const liveData = await fetchLiveHotspots();
   const hotspotData = liveData ?? (await loadDashboardHotspots());
 
@@ -32,9 +32,12 @@ export default async function Home() {
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-7xl px-6 py-8">
         <AppHeader />
-        <TabbedDashboard
+        <UnifiedDashboard
           wildfire={<WildfireView hotspotData={hotspotData} />}
-          flood={<FloodView />}
+          scenarioA={<FloodView initial="A" />}
+          scenarioB={<FloodView initial="B" />}
+          scenarioC={<FloodView initial="C" />}
+          initial="scenario-a"
         />
       </section>
     </main>
