@@ -1,6 +1,6 @@
 import type { HazardAnalysisOutput } from "@/ai/ollama/ollama-client";
 
-export const GEMMA_HAZARD_ANALYSIS_MODEL = "gemma3n:e2b";
+export const GEMMA_HAZARD_ANALYSIS_MODEL = "gemma4:e2b";
 
 export const mockHazardAnalysisResult: HazardAnalysisOutput = {
   severity: "HIGH",

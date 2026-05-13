@@ -8,7 +8,7 @@ export function AppHeader() {
           <span className="text-emerald-300/90">Gemma Rescue Grid</span>
         </h1>
         <p className="text-sm text-slate-400">
-          Wildfire monitoring · Offline-edge flood response · Powered by Gemma 4
+          Offline-first disaster intelligence for communities anywhere · Powered by Gemma 4
         </p>
       </div>
       <div className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-sm text-emerald-300">

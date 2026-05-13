@@ -1,23 +1,26 @@
 # NusaSiaga · Gemma Rescue Grid
 
-**Two-track disaster intelligence platform powered by Gemma 4. Live wildfire monitoring across Indonesia plus offline-edge flood response with on-device Gemma 4 triage.**
+**Offline-first disaster intelligence platform for communities anywhere, powered by Gemma 4. Same architecture, every disaster type, from the responder's phone to the command center.**
 
-A submission to [The Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon) targeting the Global Resilience track. NusaSiaga combines two complementary disaster-response capabilities in a single operational dashboard:
+A submission to [The Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon) targeting the Global Resilience track. NusaSiaga is a single unified dashboard with a disaster-type picker — wildfire, flood, earthquake, industrial fire today; volcanic, tsunami, landslide, storm, building collapse next — all driven by one Gemma 4 architecture and one JSON contract.
 
-- **Wildfire Monitoring tab** — Real-time NASA FIRMS satellite hotspot data across Indonesia, with FRP-weighted risk scoring and provincial classification.
-- **Flood Response Demo tab** — Pre-baked Scenario A synthesis from the hybrid Gemma 4 architecture: E2B on responder phones (offline) → 31B in command center (cloud) → this dashboard (ops UI).
+The system has three tiers:
 
----
-
-## Why two tracks
-
-Disasters in Indonesia are not one thing. Wildfires across Kalimantan and Sumatera need different intelligence than rapid-onset floods in central Jakarta. **The two tabs demonstrate that the same NusaSiaga dashboard can serve as the ops UI for fundamentally different disaster types** — wildfires with live satellite feeds, floods with synthesized field reports — without rewriting the platform.
-
-Both tracks share the same operational aesthetic, the same Gemma 4 reasoning capability, and the same offline-first design philosophy.
+- **Edge tier** — Gemma 4 E2B on a responder's Android phone via Google AI Edge LiteRT, fully offline. Photo + voice/text → structured `EdgeTriageReport` JSON in under 5 seconds.
+- **Sync tier** — Gemma 4 31B in a Kaggle notebook. When connectivity returns, queued reports flow here for cross-report synthesis: priority zones, ranked actions, validity flags.
+- **Dashboard tier** — this Next.js app, deployed on Vercel. Renders the synthesis as an operational picture. Also hosts a passive-intelligence layer (live NASA FIRMS satellite wildfire data).
 
 ---
 
-## Track A — Wildfire Monitoring (live NASA FIRMS)
+## Why one platform for every disaster type
+
+A flood in Jakarta, an earthquake in Türkiye, a wildfire in California — the shape of the disaster differs, but the field-response problem is identical: chaotic input arriving over poor connectivity in the first minutes that matter most. **The same dashboard can serve as the ops UI for fundamentally different disaster types** because the underlying contract — a responder's photo turned into structured triage by an on-device model — does not care which disaster it is.
+
+The current demonstration scenarios are Indonesian (central Jakarta flood, Cianjur earthquake simulation, an industrial flood-fire compound disaster) because that is the team's home context. The architecture is designed to deploy anywhere a phone and Gemma 4 can run.
+
+---
+
+## Wildfire layer — live NASA FIRMS satellite intelligence
 
 - **Live NASA FIRMS API** — VIIRS/SNPP satellite hotspot data, refreshed every 30 minutes
 - **FRP-weighted risk scoring** — Fire Radiative Power as primary intensity metric
@@ -25,18 +28,18 @@ Both tracks share the same operational aesthetic, the same Gemma 4 reasoning cap
 - **Province/regency classification** — 60+ bounding boxes covering all Indonesian provinces
 - **Environmental impact estimates** — CO₂ release, smoke plume radius, AQI risk level
 - **3-tier fallback** — NASA FIRMS live → notebook JSON → demo data
-- **AI Hazard Analyzer** — local Gemma/Ollama integration with safe fallback
+- **AI Hazard Analyzer** — local Gemma 4 via Ollama with safe fallback
 
-NASA FIRMS work by [@NoesaaDecodes](https://github.com/NoesaaDecodes).
+NASA FIRMS work by [@NoesaaDecodes](https://github.com/NoesaaDecodes). The current implementation covers Indonesian wildfire-prone regions because that is the public data the API exposes by default; FIRMS itself is a global service and the same pipeline applies to wildfires anywhere.
 
-## Track B — Offline-Edge Flood Response (Gemma 4 hybrid)
+## Offline-edge field response — Gemma 4 hybrid
 
-- **Edge tier:** Gemma 4 E2B on Android via Google AI Edge LiteRT, fully offline. Photo + voice/text → structured `EdgeTriageReport` JSON in under 5 seconds on a mid-range phone.
+- **Edge tier:** Gemma 4 E2B on Android via Google AI Edge LiteRT, fully offline. Photo + voice/text → structured `EdgeTriageReport` JSON in under 5 seconds on a mid-range phone. Works on any disaster type a responder can photograph.
 - **Sync tier:** Gemma 4 31B (Unsloth 4-bit, 2× T4 on Kaggle) consolidates queued reports into a single `CommandCenterSynthesis` JSON with priority zones, recommended actions, and validity flags.
 - **Intelligent routing (Cactus Prize hook):** every report carries the on-device model's own routing recommendation. The app layer combines this with cross-report context (recurring location, low confidence, trapped persons) to decide fast lane (local action) vs deep lane (queue for 31B synthesis).
 - **One JSON contract** — same Gemma 4 family, same schema, top to bottom.
 
-Pre-baked demo: 12 field reports from Scenario A (rapid-onset Jakarta flood, 90-minute window). The synthesis JSON shown was produced by Gemma 4 E4B on Colab; will be regenerated from 31B on Kaggle for the final submission.
+Pre-baked demo: 12 field reports from a simulated rapid-onset central Jakarta flood (90-minute window). The synthesis JSON shown was produced by Gemma 4 E4B on Colab; will be regenerated from 31B on Kaggle for the final submission. Two more scenarios — a Cianjur-style shallow earthquake and a compound industrial flood + fire event — render as full operational dashboards once their synthesis runs on Day 4.
 
 Gemma Rescue Grid work in [listyantidewi1/gemma-disaster-grid](https://github.com/listyantidewi1/gemma-disaster-grid).
 
@@ -56,13 +59,14 @@ Gemma Rescue Grid work in [listyantidewi1/gemma-disaster-grid](https://github.co
 │  Notebook JSON → Demo data      │    │  Gemma 4 31B (Kaggle, Unsloth)           │
 │       │                         │    │       │                                  │
 │       ▼                         │    │       ▼                                  │
-│  Wildfire Monitoring tab        │    │  Flood Response Demo tab                 │
+│  Wildfire layer                 │    │  Flood / quake / industrial-fire layer  │
 └─────────────────────────────────┘    └─────────────────────────────────────────┘
               \                              /
                \                            /
                 ▼                          ▼
         ┌─────────────────────────────────────┐
         │   NusaSiaga · Gemma Rescue Grid     │
+        │   Single unified disaster picker    │
         │   (Next.js, Tailwind, Vercel)       │
         └─────────────────────────────────────┘
 ```
@@ -114,7 +118,7 @@ notebooks/
 - NASA FIRMS API (VIIRS/SNPP NRT) for live wildfires
 - Gemma 4 E2B (LiteRT) for on-device edge inference
 - Gemma 4 31B (Unsloth 4-bit) for cloud synthesis
-- Ollama (gemma3n:e2b) for local AI hazard analysis
+- Ollama (gemma4:e2b) for local AI hazard analysis on the wildfire layer
 
 ---
 

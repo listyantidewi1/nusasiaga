@@ -72,7 +72,7 @@ export function HazardAnalysisPanel() {
           Interactive AI Hazard Analyzer
         </h2>
         <p className="mt-1 text-sm text-slate-400">
-          Local Gemma analysis with safe fallback for field reports.
+          Local Gemma 4 analysis via Ollama with safe fallback for field reports.
         </p>
       </div>
 

@@ -25,10 +25,10 @@ ollama serve
 
 Keep that terminal open while developing.
 
-## 3. Pull the Gemma Model
+## 3. Pull the Gemma 4 Model
 
 ```powershell
-ollama pull gemma3n:e2b
+ollama pull gemma4:e2b
 ```
 
 Check that the model exists:
@@ -45,7 +45,7 @@ Ollama should listen on `http://localhost:11434`.
 Invoke-RestMethod http://localhost:11434/api/tags
 ```
 
-You should see a list of local models, including `gemma3n:e2b`.
+You should see a list of local models, including `gemma4:e2b`.
 
 ## 5. Test `/api/analyze`
 
@@ -87,9 +87,9 @@ If Ollama is unavailable, the app returns a safe fallback with:
 
 ## Troubleshooting
 
-- `source` is `mock-fallback`: confirm Ollama is running and `gemma3n:e2b` is installed.
+- `source` is `mock-fallback`: confirm Ollama is running and `gemma4:e2b` is installed.
 - `ollama` command not found: restart PowerShell or reinstall Ollama.
 - `localhost:11434` does not respond: run `ollama serve`.
-- Model not found: run `ollama pull gemma3n:e2b`.
+- Model not found: run `ollama pull gemma4:e2b`.
 - Slow first response: the model may be loading into memory; retry after a few seconds.
 - Port conflict: make sure no other service is using `11434`.
