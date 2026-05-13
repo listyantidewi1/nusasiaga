@@ -44,7 +44,7 @@ export const SCENARIOS: Record<ScenarioId, ScenarioBundle> = {
   A: {
     id: "A",
     shortLabel: "Jakarta flood",
-    title: "Scenario A · Rapid-onset Jakarta flood",
+    title: "Rapid-onset Jakarta flood",
     description:
       "12 field reports across a 90-minute window, central Jakarta. Mid-difficulty: multiple priority zones, recurring electrical hazards, one elderly evacuation, one possible trapped rider.",
     reports: scenarioAJson.reports as EdgeTriageReport[],
@@ -57,7 +57,7 @@ export const SCENARIOS: Record<ScenarioId, ScenarioBundle> = {
   B: {
     id: "B",
     shortLabel: "Cianjur quake",
-    title: "Scenario B · Shallow earthquake, simulated Cianjur",
+    title: "Shallow earthquake — simulated Cianjur",
     description:
       "15 reports across a 2-hour window. Hardest case: three sev-5 incidents including mosque collapse with secondary minaret failure, school evacuation, hospital patient carry, market gas leak, one deliberately low-confidence ambiguous report.",
     reports: scenarioBJson.reports as EdgeTriageReport[],
@@ -70,7 +70,7 @@ export const SCENARIOS: Record<ScenarioId, ScenarioBundle> = {
   C: {
     id: "C",
     shortLabel: "Compound flood + fire",
-    title: "Scenario C · Compound flood + electrical fires, industrial zone",
+    title: "Compound flood + electrical fires — industrial zone",
     description:
       "8 reports across a 60-minute window. Different responders classify the primary disaster differently (fire vs flood vs building_collapse) — synthesis must produce a coherent compound classification.",
     reports: scenarioCJson.reports as EdgeTriageReport[],

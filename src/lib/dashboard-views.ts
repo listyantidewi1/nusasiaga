@@ -55,7 +55,7 @@ export const DASHBOARD_VIEWS: Record<DashboardViewId, DashboardView> = {
     scenarioId: "A",
     emoji: "🌊",
     shortLabel: "Jakarta Flood",
-    longLabel: "Flood · Scenario A · Rapid-onset central Jakarta",
+    longLabel: "Flood · Rapid-onset central Jakarta",
     description:
       "12 EdgeTriageReports across a 90-minute window. Full Gemma 4 synthesis output: 5 priority zones, 3 ranked actions, validity flags.",
     status: "ready",
@@ -67,7 +67,7 @@ export const DASHBOARD_VIEWS: Record<DashboardViewId, DashboardView> = {
     scenarioId: "B",
     emoji: "🏚️",
     shortLabel: "Cianjur Quake",
-    longLabel: "Earthquake · Scenario B · Simulated Cianjur shallow quake",
+    longLabel: "Earthquake · Simulated Cianjur shallow quake",
     description:
       "15 reports across 2 hours. Three severity-5 incidents, school evacuation, hospital patient carry, gas leak, low-confidence ambiguity case.",
     status: "pending",
@@ -79,7 +79,7 @@ export const DASHBOARD_VIEWS: Record<DashboardViewId, DashboardView> = {
     scenarioId: "C",
     emoji: "⚡",
     shortLabel: "Compound Flood+Fire",
-    longLabel: "Compound · Scenario C · Floodwater + transformer fires in industrial zone",
+    longLabel: "Compound · Floodwater + transformer fires in industrial zone",
     description:
       "8 reports in a 60-minute window. Reports deliberately disagree on primary disaster type — synthesis must produce a compound classification.",
     status: "pending",
