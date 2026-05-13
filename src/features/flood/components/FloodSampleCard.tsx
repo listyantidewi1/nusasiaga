@@ -1,13 +1,17 @@
+"use client";
+
 import { AlertTriangle } from "lucide-react";
-import { floodReports } from "@/lib/flood-reports";
+import { useFloodScenario } from "./FloodScenarioContext";
 
 export function FloodSampleCard() {
-  // The most demonstrative report in Scenario A: trapped elderly + downed
-  // power line at Tegal Sari Block 5 (severity 4, immediate evacuation).
+  const { scenario } = useFloodScenario();
+  const reports = scenario.reports;
+
+  // Feature the most demonstrative report in the scenario:
+  // prefer severity 4+ with trapped persons, else highest severity overall.
   const featured =
-    floodReports.find(
-      (r) => r.severity === 4 && r.people_visible.trapped_apparent > 0,
-    ) ?? floodReports[0];
+    reports.find((r) => r.severity >= 4 && r.people_visible.trapped_apparent > 0) ??
+    [...reports].sort((a, b) => b.severity - a.severity)[0];
 
   return (
     <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-red-950/70 to-slate-900 p-6">

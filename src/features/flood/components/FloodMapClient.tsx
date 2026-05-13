@@ -1,8 +1,8 @@
 "use client";
 
-import { floodReports } from "@/lib/flood-reports";
 import { DivIcon, type LatLngExpression } from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { useFloodScenario } from "./FloodScenarioContext";
 
 const severityColor: Record<number, string> = {
   5: "#7f1d1d",
@@ -35,13 +35,16 @@ function createReportIcon(severity: number) {
 }
 
 export function FloodMapClient() {
-  // Jakarta center, averaged across Scenario A reports.
-  const center: LatLngExpression = [-6.243, 106.858];
+  const { scenario } = useFloodScenario();
+  const reports = scenario.reports;
+  const center: LatLngExpression = scenario.mapCenter;
 
   return (
     <MapContainer
+      // key forces remount when scenario changes (so center + zoom apply)
+      key={scenario.id}
       center={center}
-      zoom={13}
+      zoom={scenario.mapZoom}
       scrollWheelZoom={false}
       className="h-[420px] w-full"
     >
@@ -50,14 +53,12 @@ export function FloodMapClient() {
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       />
 
-      {floodReports.map((report) => {
+      {reports.map((report) => {
         if (report.location.lat == null || report.location.lon == null) return null;
         return (
           <Marker
             key={report.report_id}
-            position={
-              [report.location.lat, report.location.lon] as LatLngExpression
-            }
+            position={[report.location.lat, report.location.lon] as LatLngExpression}
             icon={createReportIcon(report.severity)}
           >
             <Popup>
@@ -69,9 +70,7 @@ export function FloodMapClient() {
                   </span>{" "}
                   · {report.disaster_type}
                 </div>
-                <div className="text-slate-700">
-                  {report.severity_rationale}
-                </div>
+                <div className="text-slate-700">{report.severity_rationale}</div>
                 <div className="mt-1 text-xs text-slate-600">
                   <em>Action:</em> {report.immediate_action}
                 </div>

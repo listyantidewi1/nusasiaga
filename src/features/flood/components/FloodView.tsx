@@ -2,19 +2,25 @@ import { FloodHero } from "./FloodHero";
 import { FloodMap } from "./FloodMap";
 import { FloodReportFeed } from "./FloodReportFeed";
 import { FloodSampleCard } from "./FloodSampleCard";
+import { FloodScenarioProvider } from "./FloodScenarioContext";
 import { FloodStats } from "./FloodStats";
 import { FloodSynthesisPanel } from "./FloodSynthesisPanel";
+import { ScenarioPicker } from "./ScenarioPicker";
 import { OfflineResiliencePanel } from "@/features/offline/components/OfflineResiliencePanel";
 
 /**
- * The Flood Response demo tab: pre-baked Scenario A synthesis from
- * Gemma 4 31B, rendered as the operational picture the command center
- * would see while responders submit reports from their phones.
+ * The Flood Response demo tab: scenario-aware operational view of
+ * disaster reports flowing through the hybrid Gemma 4 architecture.
+ *
+ * Wraps every child in <FloodScenarioProvider> so the ScenarioPicker
+ * + every flood-namespaced component share one piece of state: which
+ * scenario (A/B/C) is currently active.
  */
 export function FloodView() {
   return (
-    <>
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+    <FloodScenarioProvider initial="A">
+      <ScenarioPicker />
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <FloodHero />
         <FloodSampleCard />
       </div>
@@ -23,6 +29,6 @@ export function FloodView() {
       <FloodStats />
       <FloodReportFeed />
       <OfflineResiliencePanel />
-    </>
+    </FloodScenarioProvider>
   );
 }

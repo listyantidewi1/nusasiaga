@@ -1,8 +1,11 @@
-import { floodReports } from "@/lib/flood-reports";
+"use client";
+
+import { useFloodScenario } from "./FloodScenarioContext";
 import { FloodReportCard } from "./FloodReportCard";
 
 export function FloodReportFeed() {
-  const ordered = [...floodReports].sort((a, b) =>
+  const { scenario } = useFloodScenario();
+  const ordered = [...scenario.reports].sort((a, b) =>
     b.timestamp_iso.localeCompare(a.timestamp_iso),
   );
 
@@ -15,11 +18,11 @@ export function FloodReportFeed() {
           </h2>
           <p className="mt-1 text-sm text-slate-400">
             Triage produced by Gemma 4 E2B on responder phones, fully
-            offline. Each card is one EdgeTriageReport.
+            offline. Each card is one EdgeTriageReport from {scenario.shortLabel}.
           </p>
         </div>
         <div className="rounded-full border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm text-sky-200">
-          {ordered.length} reports synced
+          {ordered.length} reports {scenario.synthesis ? "synced" : "queued"}
         </div>
       </div>
 
