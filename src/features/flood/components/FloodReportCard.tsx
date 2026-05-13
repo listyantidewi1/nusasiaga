@@ -66,14 +66,15 @@ export function FloodReportCard({ report }: FloodReportCardProps) {
             </div>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-2 shrink-0">
+        <div className="flex flex-col items-end gap-2 shrink-0 whitespace-nowrap">
           <span
-            className={`rounded-full border px-3 py-1 text-xs font-semibold ${sevClass}`}
+            className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${sevClass}`}
+            title={`Severity ${report.severity} - ${severityLabel[report.severity]}`}
           >
-            SEV {report.severity} · {severityLabel[report.severity]}
+            SEV {report.severity}
           </span>
           <span
-            className={`rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-wider ${evacClass}`}
+            className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${evacClass}`}
           >
             {report.evacuation_priority}
           </span>
@@ -95,18 +96,18 @@ export function FloodReportCard({ report }: FloodReportCardProps) {
           ))}
         </div>
       )}
-      <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500">
-        <span className="font-mono">{report.report_id.slice(-20)}</span>
+      <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500">
+        <span className="font-mono truncate">{report.report_id.slice(-20)}</span>
         <span
-          className={
+          className={`shrink-0 whitespace-nowrap ${
             report.routing_recommendation === "deep_lane"
               ? "text-orange-300"
               : "text-emerald-300"
-          }
+          }`}
         >
           {report.routing_recommendation === "deep_lane"
-            ? "→ deep lane"
-            : "· fast lane"}
+            ? "deep lane"
+            : "fast lane"}
         </span>
       </div>
     </div>
