@@ -1,0 +1,284 @@
+import { NextResponse } from "next/server";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type FirmsRow = {
+  latitude: string;
+  longitude: string;
+  brightness?: string;
+  bright_ti4?: string;
+  frp: string;
+  confidence: string;
+  acq_date: string;
+  acq_time?: string;
+  satellite?: string;
+  instrument?: string;
+  version?: string;
+  daynight?: string;
+};
+
+type ScoredHotspot = {
+  id: string;
+  lat: number;
+  lon: number;
+  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+  risk_score: number;
+  brightness: number;
+  frp: number;
+  confidence: number;
+  satellite: string;
+  acq_date: string;
+  province: string;
+  regency: string;
+  environmental_label: string;
+  smoke_impact: string;
+};
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const MAP_KEY = process.env.NASA_FIRMS_MAP_KEY ?? "";
+
+// Indonesia bounding box: west, south, east, north
+const INDONESIA_BBOX = "95,-11,141,6";
+
+const FIRMS_URL = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${MAP_KEY}/VIIRS_SNPP_NRT/${INDONESIA_BBOX}/1`;
+
+// Cache response for 30 minutes to avoid hammering NASA API
+let cache: { data: unknown; fetchedAt: number } | null = null;
+const CACHE_TTL_MS = 30 * 60 * 1000;
+
+// ─── Province lookup ──────────────────────────────────────────────────────────
+
+const PROVINCE_BOUNDS: [number, number, number, number, string, string][] = [
+  [-0.7, 0.0, 111.0, 112.5, "Kalimantan Barat", "Sintang / Melawi"],
+  [-2.0, -0.7, 109.5, 111.5, "Kalimantan Barat", "Ketapang"],
+  [-2.0, -1.0, 111.5, 113.0, "Kalimantan Barat", "Kapuas Hulu"],
+  [-2.0, -0.8, 110.0, 111.5, "Kalimantan Tengah", "Barito Selatan"],
+  [-3.5, -2.0, 113.0, 115.0, "Kalimantan Tengah", "Kapuas / Pulang Pisau"],
+  [-4.0, -2.8, 114.0, 116.0, "Kalimantan Selatan", "Hulu Sungai Selatan"],
+  [-1.5, 0.5, 103.5, 105.5, "Riau", "Pelalawan / Indragiri"],
+  [-4.0, -2.5, 104.5, 106.5, "Sumatera Selatan", "OKI / Musi Banyuasin"],
+  [-6.5, -2.5, 105.0, 109.0, "Jawa", "Jawa Barat / Tengah"],
+  [-4.0, -1.0, 101.0, 104.0, "Sumatera Selatan", "Jambi"],
+  [-1.0, 2.5, 98.0, 102.5, "Sumatera Utara / Riau", "Sumatera bagian utara"],
+  [-9.0, -5.5, 114.0, 116.5, "Nusa Tenggara", "NTB / NTT"],
+  [-5.0, -1.0, 131.0, 141.0, "Papua", "Papua Tengah / Pegunungan"],
+];
+
+const PEATLAND_ZONES: [number, number, number, number][] = [
+  [-2.5, 0.5, 108.0, 114.0],
+  [-4.5, -1.5, 103.0, 107.0],
+  [-1.5, 1.5, 100.0, 104.0],
+];
+
+function lookupProvince(lat: number, lon: number): [string, string] {
+  for (const [latMin, latMax, lonMin, lonMax, province, regency] of PROVINCE_BOUNDS) {
+    if (lat >= latMin && lat <= latMax && lon >= lonMin && lon <= lonMax) {
+      return [province, regency];
+    }
+  }
+  return ["Indonesia", "Unknown regency"];
+}
+
+function isPeatland(lat: number, lon: number): boolean {
+  return PEATLAND_ZONES.some(
+    ([latMin, latMax, lonMin, lonMax]) =>
+      lat >= latMin && lat <= latMax && lon >= lonMin && lon <= lonMax
+  );
+}
+
+// ─── Scoring ──────────────────────────────────────────────────────────────────
+
+function normalizeConfidence(raw: string): number {
+  const lower = raw.trim().toLowerCase();
+  if (lower === "high") return 90;
+  if (lower === "nominal" || lower === "n") return 65;
+  if (lower === "low" || lower === "l") return 40;
+  const n = parseInt(raw, 10);
+  return isNaN(n) ? 60 : Math.max(0, Math.min(100, n));
+}
+
+function scoreFrp(frp: number): number {
+  if (frp <= 0) return 10;
+  return Math.min(100, (Math.log10(Math.max(frp, 1)) / Math.log10(200)) * 100);
+}
+
+function scoreBrightness(b: number): number {
+  return Math.max(0, Math.min(100, ((b - 300) / (400 - 300)) * 100));
+}
+
+function computeRiskScore(frp: number, brightness: number, confidence: number): number {
+  const frpS = scoreFrp(frp);
+  const brightS = scoreBrightness(brightness);
+  const confS = confidence;
+  return Math.round(frpS * 0.45 + brightS * 0.30 + confS * 0.25);
+}
+
+function classifySeverity(score: number): "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" {
+  if (score >= 80) return "CRITICAL";
+  if (score >= 60) return "HIGH";
+  if (score >= 40) return "MEDIUM";
+  return "LOW";
+}
+
+function buildEnvLabel(score: number, peat: boolean, frp: number): string {
+  if (peat && score >= 80) return "Peatland fire — extreme carbon release risk";
+  if (peat && score >= 60) return "Active peatland fire — monitoring required";
+  if (peat) return "Low FRP — possible smoldering peat";
+  if (score >= 80) return "High-intensity fire — settlement proximity risk";
+  if (frp < 25) return "Low FRP — possible smoldering vegetation";
+  return "Active burn zone — standard monitoring";
+}
+
+function smokeImpact(score: number, peat: boolean): string {
+  if (score >= 80 || (peat && score >= 60)) return "severe";
+  if (score >= 65) return "high";
+  if (score >= 50) return "moderate";
+  if (score >= 35) return "low";
+  return "minimal";
+}
+
+// ─── CSV parser ───────────────────────────────────────────────────────────────
+
+function parseFirmsCsv(csv: string): ScoredHotspot[] {
+  const lines = csv.trim().split("\n");
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+  const results: ScoredHotspot[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    try {
+      const values = lines[i].split(",");
+      const row: Record<string, string> = {};
+      headers.forEach((h, idx) => {
+        row[h] = values[idx]?.trim() ?? "";
+      });
+
+      const lat = parseFloat(row.latitude);
+      const lon = parseFloat(row.longitude);
+      if (isNaN(lat) || isNaN(lon)) continue;
+
+      // Validate Indonesia bounds
+      if (lat < -11 || lat > 6 || lon < 95 || lon > 141) continue;
+
+      const brightnessRaw = row.brightness ?? row.bright_ti4 ?? "300";
+      const brightness = parseFloat(brightnessRaw) || 300;
+      const frp = parseFloat(row.frp) || 0;
+      const confidence = normalizeConfidence(row.confidence ?? "60");
+      const satRaw = row.satellite?.trim() ?? ""; const instrRaw = row.instrument?.trim() ?? "VIIRS"; const satellite = satRaw === "N" ? "VIIRS/SNPP" : satRaw === "A" ? "VIIRS/NOAA-20" : satRaw === "J1" ? "VIIRS/NOAA-21" : instrRaw;
+      const acqDate = row.acq_date ?? "unknown";
+
+      const [province, regency] = lookupProvince(lat, lon);
+      const peat = isPeatland(lat, lon);
+      const riskScore = computeRiskScore(frp, brightness, confidence);
+      const severity = classifySeverity(riskScore);
+
+      results.push({
+        id: `FIRMS-${i.toString().padStart(4, "0")}`,
+        lat: Math.round(lat * 10000) / 10000,
+        lon: Math.round(lon * 10000) / 10000,
+        severity,
+        risk_score: riskScore,
+        brightness: Math.round(brightness * 10) / 10,
+        frp: Math.round(frp * 10) / 10,
+        confidence,
+        satellite,
+        acq_date: acqDate,
+        province,
+        regency,
+        environmental_label: buildEnvLabel(riskScore, peat, frp),
+        smoke_impact: smokeImpact(riskScore, peat),
+      });
+    } catch {
+      // skip malformed rows silently
+    }
+  }
+
+  // Sort by risk_score descending, cap at 200 hotspots for performance
+  return results
+    .sort((a, b) => b.risk_score - a.risk_score)
+    .slice(0, 200);
+}
+
+// ─── Summary builder ──────────────────────────────────────────────────────────
+
+function buildSummary(hotspots: ScoredHotspot[]) {
+  const counts = { total: hotspots.length, critical: 0, high: 0, medium: 0, low: 0 };
+  const frps = hotspots.map((h) => h.frp).filter((f) => f > 0);
+  const provinces = [...new Set(hotspots.map((h) => h.province))];
+
+  for (const h of hotspots) {
+    if (h.severity === "CRITICAL") counts.critical++;
+    else if (h.severity === "HIGH") counts.high++;
+    else if (h.severity === "MEDIUM") counts.medium++;
+    else counts.low++;
+  }
+
+  return {
+    ...counts,
+    avg_frp: frps.length ? Math.round((frps.reduce((a, b) => a + b, 0) / frps.length) * 10) / 10 : 0,
+    max_frp: frps.length ? Math.max(...frps) : 0,
+    satellites_used: [...new Set(hotspots.map((h) => h.satellite))],
+    provinces_affected: provinces.slice(0, 8),
+  };
+}
+
+// ─── Route handler ────────────────────────────────────────────────────────────
+
+export async function GET() {
+  // Check cache
+  if (cache && Date.now() - cache.fetchedAt < CACHE_TTL_MS) {
+    return NextResponse.json(cache.data);
+  }
+
+  if (!MAP_KEY) {
+    return NextResponse.json(
+      { error: "NASA_FIRMS_MAP_KEY not configured in environment." },
+      { status: 500 }
+    );
+  }
+
+  try {
+    const response = await fetch(FIRMS_URL, {
+      headers: { "User-Agent": "NusaSiaga/2.0 disaster-intelligence" },
+      next: { revalidate: 1800 }, // Next.js cache 30 min
+    });
+
+    if (!response.ok) {
+      throw new Error(`FIRMS API responded with ${response.status}`);
+    }
+
+    const csvText = await response.text();
+
+    // NASA returns "Invalid MAP_KEY" as plain text on auth failure
+    if (csvText.includes("Invalid") || csvText.includes("Error")) {
+      throw new Error(`FIRMS API error: ${csvText.slice(0, 100)}`);
+    }
+
+    const hotspots = parseFirmsCsv(csvText);
+    const summary = buildSummary(hotspots);
+
+    const payload = {
+      source: "firms-live" as const,
+      fetched_at: new Date().toISOString(),
+      summary,
+      hotspots,
+    };
+
+    // Update cache
+    cache = { data: payload, fetchedAt: Date.now() };
+
+    return NextResponse.json(payload);
+  } catch (err) {
+    console.error("[NusaSiaga] FIRMS fetch failed:", err);
+    return NextResponse.json(
+      {
+        error: "Failed to fetch NASA FIRMS data.",
+        detail: err instanceof Error ? err.message : "Unknown error",
+      },
+      { status: 502 }
+    );
+  }
+}
+

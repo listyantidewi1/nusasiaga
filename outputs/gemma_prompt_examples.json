@@ -1,6 +1,57 @@
-[
-  "You are NusaSiaga, an offline-first environmental disaster intelligence assistant.\nAnalyze this wildfire hotspot and return only valid JSON with:\n- severity\n- aqiEstimate\n- evacuationRecommendation\n- environmentalImpact\n\nHotspot:\n- Region: Kalimantan Barat\n- Risk: HIGH\n- Risk score: 8\n- Brightness: 348.1\n- Confidence: 84\n- FRP: 39.5\n- Timestamp UTC: 2026-05-13T08:30:00+00:00",
-  "You are NusaSiaga, an offline-first environmental disaster intelligence assistant.\nAnalyze this wildfire hotspot and return only valid JSON with:\n- severity\n- aqiEstimate\n- evacuationRecommendation\n- environmentalImpact\n\nHotspot:\n- Region: Riau\n- Risk: CRITICAL\n- Risk score: 12\n- Brightness: 372.4\n- Confidence: 92\n- FRP: 58.2\n- Timestamp UTC: 2026-05-13T08:15:00+00:00",
-  "You are NusaSiaga, an offline-first environmental disaster intelligence assistant.\nAnalyze this wildfire hotspot and return only valid JSON with:\n- severity\n- aqiEstimate\n- evacuationRecommendation\n- environmentalImpact\n\nHotspot:\n- Region: Riau\n- Risk: MEDIUM\n- Risk score: 5\n- Brightness: 335.2\n- Confidence: 73\n- FRP: 24.1\n- Timestamp UTC: 2026-05-13T09:15:00+00:00",
-  "You are NusaSiaga, an offline-first environmental disaster intelligence assistant.\nAnalyze this wildfire hotspot and return only valid JSON with:\n- severity\n- aqiEstimate\n- evacuationRecommendation\n- environmentalImpact\n\nHotspot:\n- Region: Sumatera Selatan\n- Risk: MEDIUM\n- Risk score: 4\n- Brightness: 326.7\n- Confidence: 68\n- FRP: 18.9\n- Timestamp UTC: 2026-05-13T09:00:00+00:00"
-]
+{
+  "metadata": {
+    "generated_at": "2024-08-15T06:30:00Z",
+    "pipeline_version": "2.0.0",
+    "model_target": "gemma3n:e2b",
+    "prompt_style": "structured_environmental_reasoning"
+  },
+  "prompts": [
+    {
+      "id": "PROMPT-001",
+      "hotspot_id": "HS-001",
+      "context": "CRITICAL severity wildfire hotspot in Kalimantan Tengah — Barito Selatan",
+      "prompt": "You are NusaSiaga, an environmental disaster intelligence assistant for Indonesia. Analyze this wildfire hotspot detected by NASA FIRMS satellites.\n\nHotspot Data:\n- Location: -1.5678°S, 110.7890°E (Barito Selatan, Kalimantan Tengah)\n- Severity: CRITICAL\n- Risk Score: 92/100\n- Fire Radiative Power (FRP): 112.7 MW\n- Brightness Temperature: 378.2 K\n- Detection Confidence: 92%\n- Satellite: Terra MODIS\n- Date: 2024-08-15\n- Environmental Label: Peatland fire — extreme carbon release risk\n\nProvide:\n1. Hazard assessment for this hotspot\n2. Estimated smoke and AQI impact on nearby communities\n3. Key environmental risks (especially peatland carbon)\n4. Evacuation or protective action recommendations\n5. Priority for emergency response teams\n\nKeep the analysis practical for field responders. Use clear, direct language.",
+      "expected_reasoning_focus": ["peatland_carbon_risk", "smoke_health_impact", "evacuation_priority", "frp_interpretation"],
+      "severity": "CRITICAL",
+      "frp": 112.7
+    },
+    {
+      "id": "PROMPT-002",
+      "hotspot_id": "HS-006",
+      "context": "CRITICAL severity wildfire in Kalimantan Barat — Kapuas Hulu, biodiversity zone",
+      "prompt": "You are NusaSiaga, an environmental disaster intelligence assistant for Indonesia. Analyze this wildfire hotspot detected by NASA FIRMS satellites.\n\nHotspot Data:\n- Location: -1.4521°S, 110.6234°E (Kapuas Hulu, Kalimantan Barat)\n- Severity: CRITICAL\n- Risk Score: 85/100\n- Fire Radiative Power (FRP): 95.2 MW\n- Brightness Temperature: 368.9 K\n- Detection Confidence: 90%\n- Satellite: SNPP VIIRS\n- Date: 2024-08-14\n- Environmental Label: Peatland fire — biodiversity impact zone\n\nProvide:\n1. Hazard assessment for this hotspot\n2. Environmental sensitivity analysis (biodiversity/habitat concern)\n3. Cross-border smoke risk toward Malaysia/Sarawak\n4. Recommendations for response prioritization\n5. Community protection advisory\n\nKeep analysis concise and actionable for local disaster coordinators.",
+      "expected_reasoning_focus": ["biodiversity_impact", "transboundary_smoke", "community_advisory"],
+      "severity": "CRITICAL",
+      "frp": 95.2
+    },
+    {
+      "id": "PROMPT-003",
+      "hotspot_id": "cluster_summary",
+      "context": "Multi-province cluster summary — Gemma environmental impact synthesis",
+      "prompt": "You are NusaSiaga, an environmental disaster intelligence assistant for Indonesia. Synthesize the following multi-province wildfire cluster status.\n\nActive Cluster Summary (2024-08-14 to 2024-08-15):\n- Total hotspots detected: 26\n- CRITICAL severity: 6\n- HIGH severity: 9\n- Provinces affected: Kalimantan Barat, Kalimantan Tengah, Sumatera Selatan, Riau\n- Estimated area burned: 4,200 hectares\n- Maximum FRP: 112.7 MW (Barito Selatan)\n- Estimated CO2 release: 9,800 tons\n- Smoke plume radius: ~85 km\n- Peatland involvement: YES\n- AQI risk level: VERY UNHEALTHY\n\nProvide:\n1. Overall environmental situation assessment\n2. Population exposure estimate and health risk\n3. Carbon and climate significance\n4. Provincial priority ranking for response\n5. Short-term forecast (next 24-48 hours) risk trajectory\n\nFormat as a structured intelligence brief suitable for emergency coordinators.",
+      "expected_reasoning_focus": ["multi_province_synthesis", "population_health", "carbon_significance", "response_prioritization"],
+      "severity": "CRITICAL",
+      "frp": null
+    },
+    {
+      "id": "PROMPT-004",
+      "hotspot_id": "HS-019",
+      "context": "MEDIUM severity hotspot — possible smoldering peat in Kalimantan Barat",
+      "prompt": "You are NusaSiaga, an environmental disaster intelligence assistant for Indonesia. Analyze this medium-severity hotspot that may indicate smoldering peat.\n\nHotspot Data:\n- Location: -0.4521°S, 111.6234°E (Sintang, Kalimantan Barat)\n- Severity: MEDIUM\n- Risk Score: 54/100\n- Fire Radiative Power (FRP): 22.1 MW\n- Brightness Temperature: 328.9 K\n- Detection Confidence: 65%\n- Satellite: Aqua MODIS\n- Date: 2024-08-14\n- Environmental Label: Low FRP — possible smoldering peat\n\nProvide:\n1. Assessment of whether this could be subsurface peat smoldering\n2. Why low FRP and lower brightness might still indicate high environmental risk\n3. Recommended ground-truth verification steps\n4. Escalation criteria — what changes would push this to HIGH/CRITICAL\n\nExplain for community monitors with limited technical background.",
+      "expected_reasoning_focus": ["peat_smoldering_detection", "low_frp_risk", "ground_verification", "escalation_criteria"],
+      "severity": "MEDIUM",
+      "frp": 22.1
+    }
+  ],
+  "aqi_placeholder_prompts": [
+    {
+      "id": "AQI-PROMPT-001",
+      "status": "PLACEHOLDER — requires OpenAQ data feed",
+      "context": "AQI-correlated smoke hazard prompt — ready for live data injection",
+      "prompt_template": "You are NusaSiaga. A wildfire cluster is producing smoke across Kalimantan. Current AQI reading at {station_name}: {aqi_value} ({aqi_category}). PM2.5: {pm25} μg/m³. Wind direction: {wind_dir} at {wind_speed} km/h.\n\nAssess:\n1. Health risk for {population_count} residents in the smoke corridor\n2. School and outdoor activity advisories\n3. Vulnerable population (elderly, children, respiratory patients) guidance\n4. Expected AQI trajectory over next 12 hours given fire activity",
+      "fields_required": ["station_name", "aqi_value", "aqi_category", "pm25", "wind_dir", "wind_speed", "population_count"],
+      "openaq_endpoint": "https://api.openaq.org/v3/locations?country=ID&parameter=pm25",
+      "integration_notes": "Connect to OpenAQ v3 API for live PM2.5 and AQI data. Inject into prompt_template fields before sending to Gemma."
+    }
+  ]
+}

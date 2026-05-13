@@ -1,5 +1,4 @@
 "use client";
-
 import type { DashboardHotspot } from "@/lib/dashboard-hotspots";
 import { DivIcon, type LatLngExpression } from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
@@ -8,16 +7,15 @@ type DisasterMapClientProps = {
   hotspots: DashboardHotspot[];
 };
 
-const riskColor: Record<DashboardHotspot["risk"], string> = {
-  Critical: "#ef4444",
-  High: "#fb923c",
-  Medium: "#fbbf24",
-  Low: "#6ee7b7",
+const severityColor: Record<DashboardHotspot["severity"], string> = {
+  CRITICAL: "#ef4444",
+  HIGH:     "#f97316",
+  MEDIUM:   "#eab308",
+  LOW:      "#22c55e",
 };
 
-function createHotspotIcon(risk: DashboardHotspot["risk"]) {
-  const color = riskColor[risk];
-
+function createHotspotIcon(severity: DashboardHotspot["severity"]) {
+  const color = severityColor[severity];
   return new DivIcon({
     className: "",
     html: `
@@ -50,20 +48,35 @@ export function DisasterMapClient({ hotspots }: DisasterMapClientProps) {
       />
       {hotspots.map((hotspot) => (
         <Marker
-          key={`${hotspot.area}-${hotspot.latitude}-${hotspot.longitude}`}
-          position={[hotspot.latitude, hotspot.longitude] as LatLngExpression}
-          icon={createHotspotIcon(hotspot.risk)}
+          key={hotspot.id}
+          position={[hotspot.lat, hotspot.lon] as LatLngExpression}
+          icon={createHotspotIcon(hotspot.severity)}
         >
           <Popup>
-            <div className="space-y-1">
-              <strong>{hotspot.area}</strong>
-              <div>Risk: {hotspot.risk}</div>
-              <div>Score: {hotspot.riskScore}</div>
-              {hotspot.brightness !== undefined && (
-                <div>Brightness: {hotspot.brightness}</div>
+            <div className="space-y-1 text-sm">
+              <strong>{hotspot.province ?? hotspot.id}</strong>
+              {hotspot.regency && (
+                <div className="text-slate-400">{hotspot.regency}</div>
               )}
-              {hotspot.frp !== undefined && <div>FRP: {hotspot.frp}</div>}
-              <div>{hotspot.status}</div>
+              <div>Severity: <span style={{ color: severityColor[hotspot.severity] }}>{hotspot.severity}</span></div>
+              <div>Risk Score: {hotspot.risk_score}/100</div>
+              {hotspot.frp !== undefined && (
+                <div>FRP: {hotspot.frp} MW</div>
+              )}
+              {hotspot.brightness !== undefined && (
+                <div>Brightness: {hotspot.brightness} K</div>
+              )}
+              {hotspot.confidence !== undefined && (
+                <div>Confidence: {hotspot.confidence}%</div>
+              )}
+              {hotspot.satellite && (
+                <div>Satellite: {hotspot.satellite}</div>
+              )}
+              {hotspot.environmental_label && (
+                <div className="mt-1 text-xs text-slate-300 italic">
+                  {hotspot.environmental_label}
+                </div>
+              )}
             </div>
           </Popup>
         </Marker>
