@@ -12,6 +12,24 @@ The system has three tiers:
 
 ---
 
+## Status — 2026-05-14
+
+| Component | State |
+|---|---|
+| Unified disaster-type picker | ✅ shipped (Wildfire / Flood / Earthquake / Industrial Fire) |
+| Scenario A — central Jakarta flood | ✅ full Gemma 4 synthesis rendered |
+| Scenario B — Cianjur shallow earthquake | 🟡 reports rendered; synthesis pending Day 4 Kaggle 31B run |
+| Scenario C — compound industrial flood + fire | 🟡 reports rendered; synthesis pending Day 4 Kaggle 31B run |
+| Wildfire view — live NASA FIRMS satellite layer | ✅ working; fallback chain (live API → notebook JSON → demo) intact |
+| Local production build (`npm run build`) | ✅ clean, 5 static pages generated |
+| Vercel deployment | 🟡 pending — set `NASA_FIRMS_MAP_KEY` env var on first deploy |
+| Live Demo URL for the Kaggle submission | 🟡 added here once Vercel deploys |
+| Android edge app (Gemma 4 E2B via LiteRT) | 🟡 forked `google-ai-edge/gallery` builds; `gemma-4-E2B-it` confirmed available without HuggingFace OAuth; model currently downloading on the test phone |
+
+Day-by-day plan and risk register: see [`TEAM_PLAN.en.md`](TEAM_PLAN.en.md) (English) / [`TEAM_PLAN.id.md`](TEAM_PLAN.id.md) (Bahasa Indonesia).
+
+---
+
 ## Why one platform for every disaster type
 
 A flood in Jakarta, an earthquake in Türkiye, a wildfire in California — the shape of the disaster differs, but the field-response problem is identical: chaotic input arriving over poor connectivity in the first minutes that matter most. **The same dashboard can serve as the ops UI for fundamentally different disaster types** because the underlying contract — a responder's photo turned into structured triage by an on-device model — does not care which disaster it is.
