@@ -50,25 +50,81 @@ const CACHE_TTL_MS = 30 * 60 * 1000;
 // ─── Province lookup ──────────────────────────────────────────────────────────
 
 const PROVINCE_BOUNDS: [number, number, number, number, string, string][] = [
-  [-0.7, 0.0, 111.0, 112.5, "Kalimantan Barat", "Sintang / Melawi"],
+  // ── Sumatera ──────────────────────────────────────────────────────────────
+  [-5.5, -2.5, 104.5, 106.5, "Sumatera Selatan", "OKI / Musi Banyuasin"],
+  [-4.0, -1.5, 101.5, 104.5, "Sumatera Selatan", "Musi Rawas / Lahat"],
+  [-3.5, -1.0, 100.5, 102.5, "Jambi", "Muaro Jambi / Tanjab"],
+  [-2.5, 0.0, 101.5, 103.5, "Riau", "Pelalawan / Indragiri Hulu"],
+  [-1.5, 0.5, 103.5, 105.5, "Riau", "Indragiri Hilir / Siak"],
+  [0.5, 2.5, 100.5, 103.0, "Riau", "Kampar / Rokan"],
+  [-4.5, -2.5, 103.0, 105.0, "Sumatera Selatan", "Ogan Komering Ilir"],
+  [-6.5, -4.5, 104.5, 106.5, "Lampung", "Lampung Tengah / Selatan"],
+  [-3.5, -1.5, 99.0, 101.5, "Sumatera Barat", "Pasaman / Sijunjung"],
+  [-1.5, 1.0, 98.0, 100.5, "Sumatera Utara", "Asahan / Labuhanbatu"],
+  [1.0, 4.0, 97.5, 100.0, "Sumatera Utara", "Karo / Dairi"],
+  [4.0, 6.0, 95.0, 98.5, "Aceh", "Aceh Tengah / Barat"],
+  [2.0, 4.5, 98.0, 100.5, "Sumatera Utara", "Tapanuli / Toba"],
+  [-2.0, 0.5, 103.5, 105.0, "Kepulauan Riau", "Bintan / Lingga"],
+  [-4.0, -2.0, 105.5, 107.5, "Bangka Belitung", "Bangka / Belitung"],
+  // ── Jawa ──────────────────────────────────────────────────────────────────
+  [-7.5, -5.5, 105.0, 108.5, "Jawa Barat", "Banten / Bogor / Sukabumi"],
+  [-7.5, -6.5, 108.5, 111.5, "Jawa Tengah", "Pekalongan / Purwokerto"],
+  [-8.5, -7.0, 111.0, 112.5, "Jawa Timur", "Madiun / Kediri"],
+  [-8.5, -7.5, 112.5, 114.5, "Jawa Timur", "Malang / Banyuwangi"],
+  [-7.0, -6.0, 106.5, 108.5, "DKI Jakarta / Jawa Barat", "Jakarta / Bekasi / Karawang"],
+  [-8.5, -8.0, 114.5, 116.0, "Bali", "Bali"],
+  // ── Kalimantan ────────────────────────────────────────────────────────────
+  [-0.7, 0.5, 111.0, 113.0, "Kalimantan Barat", "Sintang / Melawi"],
   [-2.0, -0.7, 109.5, 111.5, "Kalimantan Barat", "Ketapang"],
-  [-2.0, -1.0, 111.5, 113.0, "Kalimantan Barat", "Kapuas Hulu"],
-  [-2.0, -0.8, 110.0, 111.5, "Kalimantan Tengah", "Barito Selatan"],
-  [-3.5, -2.0, 113.0, 115.0, "Kalimantan Tengah", "Kapuas / Pulang Pisau"],
-  [-4.0, -2.8, 114.0, 116.0, "Kalimantan Selatan", "Hulu Sungai Selatan"],
-  [-1.5, 0.5, 103.5, 105.5, "Riau", "Pelalawan / Indragiri"],
-  [-4.0, -2.5, 104.5, 106.5, "Sumatera Selatan", "OKI / Musi Banyuasin"],
-  [-6.5, -2.5, 105.0, 109.0, "Jawa", "Jawa Barat / Tengah"],
-  [-4.0, -1.0, 101.0, 104.0, "Sumatera Selatan", "Jambi"],
-  [-1.0, 2.5, 98.0, 102.5, "Sumatera Utara / Riau", "Sumatera bagian utara"],
-  [-9.0, -5.5, 114.0, 116.5, "Nusa Tenggara", "NTB / NTT"],
-  [-5.0, -1.0, 131.0, 141.0, "Papua", "Papua Tengah / Pegunungan"],
+  [-2.0, -0.5, 111.5, 113.5, "Kalimantan Barat", "Kapuas Hulu"],
+  [0.5, 2.5, 109.0, 112.0, "Kalimantan Barat", "Sambas / Bengkayang"],
+  [-2.5, -0.5, 113.5, 116.0, "Kalimantan Tengah", "Kapuas / Pulang Pisau"],
+  [-3.5, -2.5, 112.0, 115.0, "Kalimantan Tengah", "Seruyan / Kotawaringin"],
+  [-2.0, -0.5, 110.0, 112.0, "Kalimantan Tengah", "Barito Selatan / Utara"],
+  [-4.5, -2.5, 114.5, 116.5, "Kalimantan Selatan", "Banjar / Hulu Sungai"],
+  [-4.0, -2.8, 114.0, 115.5, "Kalimantan Selatan", "Tanah Laut / Kotabaru"],
+  [-2.0, 0.5, 115.5, 118.0, "Kalimantan Timur", "Kutai Kartanegara / Bontang"],
+  [0.5, 2.5, 115.0, 118.0, "Kalimantan Timur", "Berau / Malinau"],
+  [-2.0, 0.5, 113.5, 115.5, "Kalimantan Timur", "Mahakam / Paser"],
+  [-3.5, -1.5, 115.5, 117.5, "Kalimantan Selatan", "Tanah Bumbu / Kotabaru"],
+  [0.5, 3.5, 114.5, 117.5, "Kalimantan Utara", "Nunukan / Tana Tidung"],
+  // ── Sulawesi ──────────────────────────────────────────────────────────────
+  [-3.0, 0.5, 119.5, 122.5, "Sulawesi Selatan", "Luwu / Bone / Wajo"],
+  [-5.5, -3.0, 119.5, 122.0, "Sulawesi Selatan", "Bulukumba / Jeneponto"],
+  [-3.5, -1.5, 122.0, 124.0, "Sulawesi Tengah", "Poso / Tojo Una-Una"],
+  [-1.5, 1.0, 120.5, 123.5, "Sulawesi Tengah", "Donggala / Parigi Moutong"],
+  [0.5, 2.5, 121.5, 124.5, "Sulawesi Utara", "Minahasa / Bolaang Mongondow"],
+  [-4.0, -2.0, 121.5, 123.5, "Sulawesi Tenggara", "Kolaka / Konawe"],
+  [-4.5, -3.5, 122.5, 124.0, "Sulawesi Tenggara", "Buton / Muna"],
+  [-1.0, 0.5, 122.5, 124.5, "Gorontalo", "Gorontalo / Pohuwato"],
+  [-3.0, -1.5, 119.0, 120.5, "Sulawesi Barat", "Mamuju / Majene"],
+  // ── Nusa Tenggara ─────────────────────────────────────────────────────────
+  [-9.0, -8.0, 115.5, 117.0, "Nusa Tenggara Barat", "Lombok"],
+  [-9.5, -8.0, 116.5, 119.5, "Nusa Tenggara Barat", "Sumbawa / Dompu"],
+  [-10.5, -8.5, 118.5, 121.0, "Nusa Tenggara Timur", "Flores / Manggarai"],
+  [-10.5, -9.5, 120.5, 122.5, "Nusa Tenggara Timur", "Sumba"],
+  [-10.5, -9.0, 123.5, 125.5, "Nusa Tenggara Timur", "Timor Barat / Kupang"],
+  // ── Maluku ────────────────────────────────────────────────────────────────
+  [-4.0, -1.5, 127.5, 130.5, "Maluku", "Maluku Tengah / SBB"],
+  [-8.5, -5.5, 129.5, 131.5, "Maluku", "Maluku Tenggara / MTB"],
+  [-3.5, -1.0, 124.5, 127.5, "Maluku Utara", "Halmahera / Ternate"],
+  // ── Papua ─────────────────────────────────────────────────────────────────
+  [-5.0, -1.0, 131.0, 135.0, "Papua Barat", "Manokwari / Sorong / Fak-Fak"],
+  [-5.0, -1.0, 135.0, 139.0, "Papua Tengah", "Nabire / Puncak Jaya"],
+  [-5.0, -1.0, 139.0, 141.0, "Papua Pegunungan", "Jayawijaya / Pegunungan Bintang"],
+  [-9.0, -5.0, 131.0, 138.0, "Papua Selatan", "Merauke / Mappi / Asmat"],
+  [-1.0, 2.0, 131.0, 136.0, "Papua Barat Daya", "Raja Ampat / Sorong Selatan"],
 ];
 
 const PEATLAND_ZONES: [number, number, number, number][] = [
-  [-2.5, 0.5, 108.0, 114.0],
+  // Kalimantan peatland belt
+  [-3.0, 0.5, 108.0, 116.0],
+  // Sumatera peatland corridor
   [-4.5, -1.5, 103.0, 107.0],
-  [-1.5, 1.5, 100.0, 104.0],
+  // Riau peatland
+  [-1.5, 1.5, 100.0, 104.5],
+  // Papua peatland (southern lowlands)
+  [-8.0, -4.0, 137.0, 141.0],
 ];
 
 function lookupProvince(lat: number, lon: number): [string, string] {
@@ -166,7 +222,7 @@ function parseFirmsCsv(csv: string): ScoredHotspot[] {
       const brightness = parseFloat(brightnessRaw) || 300;
       const frp = parseFloat(row.frp) || 0;
       const confidence = normalizeConfidence(row.confidence ?? "60");
-      const satRaw = row.satellite?.trim() ?? ""; const instrRaw = row.instrument?.trim() ?? "VIIRS"; const satellite = satRaw === "N" ? "VIIRS/SNPP" : satRaw === "A" ? "VIIRS/NOAA-20" : satRaw === "J1" ? "VIIRS/NOAA-21" : instrRaw;
+      const satellite = row.satellite ?? row.instrument ?? "VIIRS";
       const acqDate = row.acq_date ?? "unknown";
 
       const [province, regency] = lookupProvince(lat, lon);
@@ -281,4 +337,3 @@ export async function GET() {
     );
   }
 }
-

@@ -2,115 +2,170 @@
 
 **Offline-first disaster response and environmental intelligence for resilient communities.**
 
-NusaSiaga is a Global Resilience-focused MVP that helps communities, volunteers, and local responders understand environmental threats during low-connectivity disaster conditions. The project combines field reports, wildfire hotspot monitoring, environmental metrics, and local AI-assisted hazard analysis.
+NusaSiaga is a disaster intelligence platform that helps communities, volunteers, and local responders understand environmental threats — especially wildfires and smoke hazards — across Indonesia. The system combines real-time NASA satellite fire detection, reproducible data pipelines, and local AI-assisted hazard analysis.
+
+---
+
+## What's New — Pipeline v2
+
+- **Live NASA FIRMS API** — real-time VIIRS/SNPP satellite hotspot data, auto-refreshed every 30 minutes
+- **FRP-weighted risk scoring** — Fire Radiative Power as primary intensity metric
+- **Peatland detection** — identifies high-carbon fire zones across Kalimantan and Sumatera
+- **Province/regency classification** — 60+ bounding boxes covering all Indonesian provinces
+- **Environmental impact estimates** — CO₂ release, smoke plume radius, AQI risk level
+- **3-tier fallback** — NASA FIRMS live → notebook JSON → demo data
+
+---
 
 ## Problem Statement
 
-Disaster response teams often operate with fragmented information, limited connectivity, and delayed environmental intelligence. During wildfire, smoke, flood, or pollution events, communities need fast situational awareness that can still work when cloud connectivity is unreliable.
+Disaster response teams often operate with fragmented information, limited connectivity, and delayed environmental intelligence. During wildfire, smoke, flood, or pollution events, communities need fast situational awareness that works even when cloud connectivity is unreliable.
+
+---
 
 ## Solution Overview
 
-NusaSiaga provides a modern dashboard for disaster intelligence workflows. It visualizes hotspot regions in Indonesia, summarizes environmental risk metrics, and supports AI-assisted hazard analysis through a local Ollama/Gemma integration with safe fallback behavior.
+NusaSiaga provides a modern dashboard for disaster intelligence workflows:
 
-The MVP is designed around offline-first disaster response: the frontend remains usable with mock operational data, while local AI can run on-device through Ollama when available.
+- Real-time wildfire hotspot map powered by NASA FIRMS satellite data
+- Deterministic risk scoring: FRP (40%) + brightness (25%) + confidence (20%) + proximity (15%)
+- Local Gemma/Ollama AI for offline hazard analysis
+- Reproducible Jupyter notebook pipeline for data processing
+- Offline-first design — full fallback chain if live data unavailable
+
+---
 
 ## Key Features
 
-- Interactive disaster dashboard with dark operational UI.
-- Wildfire hotspot map for Riau, Kalimantan Barat, and Sumatera Selatan.
-- Environmental intelligence stats for AQI, wind, smoke risk, carbon release, emergency priority, and readiness.
-- AI Hazard Analyzer with local Gemma/Ollama API foundation.
-- Safe mock fallback if local AI is unavailable.
-- Feature-based Next.js App Router architecture.
-- No backend database dependency in the current MVP.
+- **Live NASA FIRMS map** — VIIRS/SNPP real-time hotspot detection across Indonesia
+- **Badge system** — "● Live NASA FIRMS" / "Notebook output" / "Demo fallback"
+- **↻ Refresh button** — manual live data refresh
+- **Severity summary** — CRITICAL / HIGH / MEDIUM / LOW counts with FRP stats
+- **AI Hazard Analyzer** — local Gemma/Ollama integration with safe fallback
+- **Environmental impact** — smoke hazard, CO₂ estimate, evacuation recommendations
+- **Province summaries** — per-province hotspot aggregation
+- **Offline resilience** — full pipeline fallback, no single point of failure
+
+---
 
 ## Tech Stack
 
 - Next.js 16 App Router
-- React 19
-- TypeScript
+- React 19 + TypeScript
 - Tailwind CSS 4
-- React Leaflet and Leaflet
-- Lucide React
-- Ollama local AI API
-- Gemma model target: `gemma3n:e2b`
+- React Leaflet + Leaflet
+- NASA FIRMS API (VIIRS/SNPP NRT)
+- Ollama local AI API — Gemma `gemma3n:e2b`
+- Jupyter notebook pipeline (Python, no ML dependencies)
 
-## Architecture Overview
+---
 
-```text
+## Architecture
+
+```
+NASA FIRMS API (live)
+      ↓
+/api/firms  ←── 30min cache
+      ↓
+page.tsx (server fetch)
+      ↓ fallback
+outputs/dashboard_hotspots.json  ←── notebook pipeline
+      ↓ fallback
+Demo hotspot data
+
 src/
   app/
-    api/analyze/        Local AI route handler
-    page.tsx            Server-rendered dashboard composition
-  ai/
-    gemma/              Prompt construction
-    ollama/             Ollama API client
-  components/shared/    Reusable shared UI
+    api/
+      analyze/      Local Gemma AI route
+      firms/        NASA FIRMS live data route
+    page.tsx        Server-rendered dashboard
   features/
-    dashboard/          Hero and dashboard summary UI
-    environment/        Environmental intelligence stats
-    hazard-analysis/    Interactive analyzer panel
-    maps/               React Leaflet disaster map
-    reports/            Report cards and mock report grid
-  lib/                  Mock domain data
+    maps/           React Leaflet disaster map
+    dashboard/      Hero and stats UI
+    hazard-analysis/ AI analyzer panel
+    environment/    Environmental intelligence
+  lib/
+    dashboard-hotspots.ts  Data loader with fallback chain
+  ai/
+    gemma/          Prompt construction
+    ollama/         Ollama API client
+notebooks/
+  nusasiaga_gemma_pipeline.ipynb  Full processing pipeline
+outputs/
+  dashboard_hotspots.json         Notebook-generated hotspot data
+  gemma_prompt_examples.json      Gemma reasoning prompts
+data/
+  firms_hotspots.csv              NASA FIRMS CSV (offline use)
 ```
 
-The homepage remains a Server Component and delegates browser-only behavior to focused Client Components, such as the map and analyzer panel.
+---
 
 ## Local Development
 
-Install dependencies:
-
 ```bash
 npm install
+npm run dev
 ```
 
-Run the development server:
+Open: `http://localhost:3000`
 
+Quality checks:
 ```bash
-npm.cmd run dev
+npm run lint
+npm run build
 ```
 
-Open:
+---
 
-```text
-http://localhost:3000
-```
+## NASA FIRMS API Setup
 
-Run quality checks:
+1. Get a free MAP KEY at: https://firms.modaps.eosdis.nasa.gov/api/area/
+2. Create `.env.local` in project root:
+   ```
+   NASA_FIRMS_MAP_KEY=your_key_here
+   ```
+3. Restart dev server — live data loads automatically
 
-```bash
-npm.cmd run lint
-npm.cmd run build
-```
+Without a MAP KEY, the dashboard falls back to notebook JSON output or demo data.
+
+---
 
 ## Local AI Setup
 
-For Windows Ollama setup, Gemma model installation, API verification, and troubleshooting, see:
+For Ollama/Gemma setup on Windows, see: [docs/LOCAL_AI_SETUP.md](docs/LOCAL_AI_SETUP.md)
 
-[docs/LOCAL_AI_SETUP.md](docs/LOCAL_AI_SETUP.md)
+```bash
+ollama pull gemma3n:e2b
+ollama serve
+```
 
-## Current MVP Status
+---
 
-NusaSiaga currently includes a polished dashboard prototype, static environmental intelligence data, an interactive map, a frontend analyzer panel, and a working local AI API route with mock fallback behavior.
+## Notebook Pipeline
 
-Not included yet:
+The notebook processes raw NASA FIRMS data into structured JSON for the dashboard:
 
-- Production backend
-- Database persistence
-- Real-time sensor feeds
-- Authentication
-- Deployment hardening
+```bash
+cd notebooks
+jupyter notebook nusasiaga_gemma_pipeline.ipynb
+# Run All Cells
+```
 
-## Hackathon Positioning
+See [notebooks/README.md](notebooks/README.md) for full documentation.
 
-NusaSiaga is positioned for Global Resilience challenges where fast, local-first decision support can improve emergency response. The product direction emphasizes:
+---
 
-- Offline-first disaster response
-- Environmental intelligence
-- Community and volunteer coordination
-- Local AI safety guidance
-- Low-connectivity field usability
+## Hackathon Positioning — Gemma 4 Good
+
+NusaSiaga is positioned for **Global Resilience** challenges:
+
+- Offline-first disaster response for low-connectivity environments
+- Environmental intelligence for wildfire and smoke hazard monitoring
+- Local AI safety guidance via Gemma — no cloud dependency required
+- Reproducible open-data pipeline using NASA FIRMS satellite data
+- Community and volunteer coordination focus
+
+---
 
 ## Founders
 
