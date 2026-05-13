@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "nusasiaga.dashboard.v1",
+  "generatedBy": "notebooks/nusasiaga_gemma_pipeline.ipynb",
+  "dataSource": "inline-sample",
+  "markers": [
+    {
+      "area": "Kalimantan Barat",
+      "latitude": -0.1322,
+      "longitude": 111.0969,
+      "risk": "HIGH",
+      "riskScore": 8,
+      "brightness": 348.1,
+      "confidence": 84,
+      "frp": 39.5,
+      "timestampUtc": "2026-05-13T08:30:00+00:00",
+      "source": "inline-sample"
+    },
+    {
+      "area": "Riau",
+      "latitude": 0.2933,
+      "longitude": 101.7068,
+      "risk": "CRITICAL",
+      "riskScore": 12,
+      "brightness": 372.4,
+      "confidence": 92,
+      "frp": 58.2,
+      "timestampUtc": "2026-05-13T08:15:00+00:00",
+      "source": "inline-sample"
+    },
+    {
+      "area": "Riau",
+      "latitude": 0.4819,
+      "longitude": 102.1265,
+      "risk": "MEDIUM",
+      "riskScore": 5,
+      "brightness": 335.2,
+      "confidence": 73,
+      "frp": 24.1,
+      "timestampUtc": "2026-05-13T09:15:00+00:00",
+      "source": "inline-sample"
+    },
+    {
+      "area": "Sumatera Selatan",
+      "latitude": -3.3194,
+      "longitude": 103.9144,
+      "risk": "MEDIUM",
+      "riskScore": 4,
+      "brightness": 326.7,
+      "confidence": 68,
+      "frp": 18.9,
+      "timestampUtc": "2026-05-13T09:00:00+00:00",
+      "source": "inline-sample"
+    }
+  ],
+  "reports": [
+    {
+      "area": "Kalimantan Barat",
+      "risk": "HIGH",
+      "status": "HIGH wildfire hotspot detected",
+      "aqiEstimate": "Pending AQI/OpenAQ integration",
+      "carbonReleaseEstimate": "8.3 kt indicative",
+      "timestampUtc": "2026-05-13T08:30:00+00:00"
+    },
+    {
+      "area": "Riau",
+      "risk": "CRITICAL",
+      "status": "CRITICAL wildfire hotspot detected",
+      "aqiEstimate": "Pending AQI/OpenAQ integration",
+      "carbonReleaseEstimate": "12.2 kt indicative",
+      "timestampUtc": "2026-05-13T08:15:00+00:00"
+    },
+    {
+      "area": "Riau",
+      "risk": "MEDIUM",
+      "status": "MEDIUM wildfire hotspot detected",
+      "aqiEstimate": "Pending AQI/OpenAQ integration",
+      "carbonReleaseEstimate": "5.1 kt indicative",
+      "timestampUtc": "2026-05-13T09:15:00+00:00"
+    },
+    {
+      "area": "Sumatera Selatan",
+      "risk": "MEDIUM",
+      "status": "MEDIUM wildfire hotspot detected",
+      "aqiEstimate": "Pending AQI/OpenAQ integration",
+      "carbonReleaseEstimate": "4.0 kt indicative",
+      "timestampUtc": "2026-05-13T09:00:00+00:00"
+    }
+  ]
+}
