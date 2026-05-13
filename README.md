@@ -24,7 +24,7 @@ The system has three tiers:
 | Local production build (`npm run build`) | ✅ clean, 5 static pages generated |
 | Vercel deployment | 🟡 pending — set `NASA_FIRMS_MAP_KEY` env var on first deploy |
 | Live Demo URL for the Kaggle submission | 🟡 added here once Vercel deploys |
-| Android edge app (Gemma 4 E2B via LiteRT) | 🟡 forked `google-ai-edge/gallery` builds; `gemma-4-E2B-it` confirmed available without HuggingFace OAuth; model currently downloading on the test phone |
+| Android edge app (Gemma 4 E2B via LiteRT) | ✅ baseline verified on Samsung Galaxy A71 (2020 mid-range, Snapdragon 730, no NPU). Multimodal image-to-text inference works at ~20-60 sec per response. CPU-bound, deliberately the device profile our Global Resilience pitch targets. UI customization is the Day 3 task. |
 
 Day-by-day plan and risk register: see [`TEAM_PLAN.en.md`](TEAM_PLAN.en.md) (English) / [`TEAM_PLAN.id.md`](TEAM_PLAN.id.md) (Bahasa Indonesia).
 
