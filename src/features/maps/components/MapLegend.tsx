@@ -1,7 +1,8 @@
 const legendItems = [
-  { label: "Extreme hotspot", className: "bg-red-500" },
+  { label: "Critical hotspot", className: "bg-red-500" },
   { label: "High risk area", className: "bg-orange-400" },
   { label: "Medium watch area", className: "bg-amber-300" },
+  { label: "Low watch area", className: "bg-emerald-300" },
 ];
 
 export function MapLegend() {

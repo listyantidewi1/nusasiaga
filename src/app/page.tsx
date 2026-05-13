@@ -8,15 +8,18 @@ import { IncidentFeed } from "@/features/incidents/components/IncidentFeed";
 import { DisasterMap } from "@/features/maps/components/DisasterMap";
 import { OfflineResiliencePanel } from "@/features/offline/components/OfflineResiliencePanel";
 import { ReportGrid } from "@/features/reports/components/ReportGrid";
+import { getDashboardHotspotData } from "@/lib/dashboard-hotspots";
 import { reports } from "@/lib/reports";
 
-export default function Home() {
+export default async function Home() {
+  const hotspotData = await getDashboardHotspotData();
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-7xl px-6 py-8">
         <AppHeader />
         <DashboardOverview />
-        <DisasterMap />
+        <DisasterMap data={hotspotData} />
         <HazardAnalysisPanel />
         <EnvironmentStats />
         <IncidentFeed />

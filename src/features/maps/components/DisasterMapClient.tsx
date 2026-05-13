@@ -1,47 +1,21 @@
 "use client";
 
+import type { DashboardHotspot } from "@/lib/dashboard-hotspots";
 import { DivIcon, type LatLngExpression } from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 
-type Hotspot = {
-  area: string;
-  position: LatLngExpression;
-  risk: "Extreme" | "High" | "Medium";
-  aqi: number;
-  status: string;
+type DisasterMapClientProps = {
+  hotspots: DashboardHotspot[];
 };
 
-const hotspots: Hotspot[] = [
-  {
-    area: "Riau",
-    position: [0.2933, 101.7068],
-    risk: "Extreme",
-    aqi: 188,
-    status: "Hotspot cluster detected",
-  },
-  {
-    area: "Kalimantan Barat",
-    position: [-0.1322, 111.0969],
-    risk: "High",
-    aqi: 142,
-    status: "Smoke spread increasing",
-  },
-  {
-    area: "Sumatera Selatan",
-    position: [-3.3194, 103.9144],
-    risk: "Medium",
-    aqi: 96,
-    status: "Watch area",
-  },
-];
-
-const riskColor: Record<Hotspot["risk"], string> = {
-  Extreme: "#ef4444",
+const riskColor: Record<DashboardHotspot["risk"], string> = {
+  Critical: "#ef4444",
   High: "#fb923c",
   Medium: "#fbbf24",
+  Low: "#6ee7b7",
 };
 
-function createHotspotIcon(risk: Hotspot["risk"]) {
+function createHotspotIcon(risk: DashboardHotspot["risk"]) {
   const color = riskColor[risk];
 
   return new DivIcon({
@@ -62,7 +36,7 @@ function createHotspotIcon(risk: Hotspot["risk"]) {
   });
 }
 
-export function DisasterMapClient() {
+export function DisasterMapClient({ hotspots }: DisasterMapClientProps) {
   return (
     <MapContainer
       center={[-1.9, 109.4]}
@@ -76,15 +50,19 @@ export function DisasterMapClient() {
       />
       {hotspots.map((hotspot) => (
         <Marker
-          key={hotspot.area}
-          position={hotspot.position}
+          key={`${hotspot.area}-${hotspot.latitude}-${hotspot.longitude}`}
+          position={[hotspot.latitude, hotspot.longitude] as LatLngExpression}
           icon={createHotspotIcon(hotspot.risk)}
         >
           <Popup>
             <div className="space-y-1">
               <strong>{hotspot.area}</strong>
               <div>Risk: {hotspot.risk}</div>
-              <div>AQI: {hotspot.aqi}</div>
+              <div>Score: {hotspot.riskScore}</div>
+              {hotspot.brightness !== undefined && (
+                <div>Brightness: {hotspot.brightness}</div>
+              )}
+              {hotspot.frp !== undefined && <div>FRP: {hotspot.frp}</div>}
               <div>{hotspot.status}</div>
             </div>
           </Popup>
