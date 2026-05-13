@@ -24,7 +24,7 @@ The system has three tiers:
 | Local production build (`npm run build`) | ✅ clean, 5 static pages generated |
 | Vercel deployment | 🟡 pending — set `NASA_FIRMS_MAP_KEY` env var on first deploy |
 | Live Demo URL for the Kaggle submission | 🟡 added here once Vercel deploys |
-| Android edge app (Gemma 4 E2B via LiteRT) | ✅ baseline verified on Samsung Galaxy A71 (2020 mid-range, Snapdragon 730, no NPU). Multimodal image-to-text inference works at ~20-60 sec per response. CPU-bound, deliberately the device profile our Global Resilience pitch targets. UI customization is the Day 3 task. |
+| Android edge app (Gemma 4 E2B via LiteRT) | ✅ Day 3 shipped one day ahead of plan. Custom "Disaster Triage" task added to the gallery fork: photo capture → Gemma 4 E2B inference (locked system prompt) → parsed EdgeTriageReport rendered as a structured card with severity badge, hazard chips, immediate-action callout, and fast-or-deep-lane routing decision (the Cactus Prize hook). End-to-end verified on Galaxy A71 in 30-60 s per triage, fully offline. Code mirrored to [`gemma-disaster-grid/android/app/src/main/kotlin/`](https://github.com/listyantidewi1/gemma-disaster-grid/tree/main/android/app/src/main/kotlin). |
 
 Day-by-day plan and risk register: see [`TEAM_PLAN.en.md`](TEAM_PLAN.en.md) (English) / [`TEAM_PLAN.id.md`](TEAM_PLAN.id.md) (Bahasa Indonesia).
 
