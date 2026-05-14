@@ -1,7 +1,5 @@
 import { DashboardOverview } from "@/features/dashboard/components/DashboardOverview";
-import { LocalAiMode } from "@/features/dashboard/components/LocalAiMode";
 import { EnvironmentStats } from "@/features/environment/components/EnvironmentStats";
-import { HazardAnalysisPanel } from "@/features/hazard-analysis/components/HazardAnalysisPanel";
 import { IncidentFeed } from "@/features/incidents/components/IncidentFeed";
 import { IncomingReportsPanel } from "@/features/live-reports/components/IncomingReportsPanel";
 import { DisasterMap } from "@/features/maps/components/DisasterMap";
@@ -18,18 +16,22 @@ type WildfireViewProps = {
  * environmental impact stats, regional incident feed, plus the live
  * field-reports panel so phone uploads with disaster_type="fire" surface
  * here alongside the satellite signal.
+ *
+ * The old HazardAnalysisPanel (Ollama-based local hazard analyzer) and
+ * LocalAiMode banner were removed once the Android edge app started
+ * doing the real on-device Gemma 4 inference. Keeping a second 'local
+ * AI' surface on the dashboard would have confused the architecture
+ * story; the phone is the local AI.
  */
 export function WildfireView({ hotspotData }: WildfireViewProps) {
   return (
     <>
       <DashboardOverview />
       <DisasterMap data={hotspotData} />
-      <HazardAnalysisPanel />
       <IncomingReportsPanel />
       <EnvironmentStats />
       <IncidentFeed />
       <ReportGrid reports={reports} />
-      <LocalAiMode />
     </>
   );
 }
