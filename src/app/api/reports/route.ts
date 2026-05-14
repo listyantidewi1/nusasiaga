@@ -178,6 +178,37 @@ export async function POST(req: NextRequest) {
     _resolved_at: null,
   };
 
+  // QR-mesh duplicate guard. If the same report_id is already in Redis,
+  // skip the LPUSH so the bounded list (MAX_REPORTS) doesn't burn slots
+  // on duplicates. The originator and N peer relays can all POST the
+  // same report_id over time; we treat them as idempotent.
+  try {
+    const existing = await redis.lrange(REPORTS_KEY, 0, MAX_REPORTS - 1);
+    for (const raw of existing) {
+      let entry: { report_id?: unknown } | null = null;
+      if (typeof raw === "string") {
+        try {
+          entry = JSON.parse(raw);
+        } catch {
+          continue;
+        }
+      } else if (typeof raw === "object" && raw !== null) {
+        entry = raw as { report_id?: unknown };
+      }
+      if (entry?.report_id === report.report_id) {
+        return NextResponse.json({
+          ok: true,
+          report_id: report.report_id,
+          duplicate: true,
+          received_at, // not actually stored; returned for client UX symmetry
+        });
+      }
+    }
+  } catch (e) {
+    // Dedup check failure shouldn't block the write — fall through to LPUSH.
+    console.warn("Redis dedup scan failed; proceeding with insert", e);
+  }
+
   try {
     await redis.lpush(REPORTS_KEY, JSON.stringify(stored));
     await redis.ltrim(REPORTS_KEY, 0, MAX_REPORTS - 1);
@@ -191,6 +222,7 @@ export async function POST(req: NextRequest) {
     report_id: report.report_id,
     received_at,
     resolved_label: label,
+    duplicate: false,
   });
 }
 
