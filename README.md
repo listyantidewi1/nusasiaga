@@ -175,6 +175,12 @@ Without a key, the wildfire tab falls back to notebook JSON or demo data.
 
 ---
 
+## Reproducing the demo
+
+A per-feature reproducible test matrix (L1 dashboard-only, L2 phone+dashboard, L3 Kaggle 31B reproduction) lives in the sibling repo at [`gemma-disaster-grid/docs/TESTING.md`](https://github.com/listyantidewi1/gemma-disaster-grid/blob/main/docs/TESTING.md). A judges' onboarding walkthrough (sideload the APK, run the dashboard, reproduce the Kaggle notebook) is at [`gemma-disaster-grid/docs/HOW-TO.md`](https://github.com/listyantidewi1/gemma-disaster-grid/blob/main/docs/HOW-TO.md).
+
+---
+
 ## Hackathon Positioning — Gemma 4 Good
 
 Track: **Global Resilience**.
