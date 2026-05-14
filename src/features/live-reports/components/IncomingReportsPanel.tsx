@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Radio, AlertTriangle, Clock, MapPin, Users } from "lucide-react";
+import { Radio, AlertTriangle, Clock, MapPin, Users, Check, CheckCircle2 } from "lucide-react";
 import { useLiveReports, type LiveReport } from "@/lib/use-live-reports";
 import type { DisasterType } from "@/lib/types";
 
@@ -25,11 +26,16 @@ export function IncomingReportsPanel({
   filterDisasterTypes,
   title = "Live field reports",
 }: IncomingReportsPanelProps) {
-  const { reports, loading, error, lastFetchedAt } = useLiveReports();
+  const { reports, loading, error, lastFetchedAt, resolveReport } =
+    useLiveReports();
 
   const filtered = filterDisasterTypes
     ? reports.filter((r) => filterDisasterTypes.includes(r.disaster_type))
     : reports;
+
+  const activeCount = filtered.filter(
+    (r) => (r._status ?? "active") === "active",
+  ).length;
 
   return (
     <section className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-5">
@@ -43,7 +49,9 @@ export function IncomingReportsPanel({
           <h3 className="text-sm font-semibold text-emerald-100">{title}</h3>
           {filtered.length > 0 && (
             <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-200">
-              {filtered.length}
+              {activeCount === filtered.length
+                ? filtered.length
+                : `${activeCount} active · ${filtered.length} total`}
             </span>
           )}
         </div>
@@ -75,7 +83,10 @@ export function IncomingReportsPanel({
                 exit={{ opacity: 0, x: 16 }}
                 transition={{ duration: 0.25 }}
               >
-                <LiveReportCard report={report} />
+                <LiveReportCard
+                  report={report}
+                  onResolve={() => resolveReport(report.report_id)}
+                />
               </motion.div>
             ))}
           </AnimatePresence>
@@ -85,7 +96,15 @@ export function IncomingReportsPanel({
   );
 }
 
-function LiveReportCard({ report }: { report: LiveReport }) {
+function LiveReportCard({
+  report,
+  onResolve,
+}: {
+  report: LiveReport;
+  onResolve: () => Promise<boolean>;
+}) {
+  const [isResolving, setIsResolving] = useState(false);
+  const isEnded = (report._status ?? "active") === "ended";
   const severityColor = severityToColor(report.severity);
   const ago = relativeTime(report._received_at);
   const people = report.people_visible;
@@ -102,20 +121,44 @@ function LiveReportCard({ report }: { report: LiveReport }) {
     .join(" · ");
 
   return (
-    <article className="rounded-lg border border-emerald-700/40 bg-slate-900/60 p-4">
+    <article
+      className={
+        "rounded-lg border p-4 transition " +
+        (isEnded
+          ? "border-slate-700/40 bg-slate-900/30 opacity-60"
+          : "border-emerald-700/40 bg-slate-900/60")
+      }
+    >
       <header className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-center gap-2">
+          {isEnded ? (
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-slate-600 text-white">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+            </span>
+          ) : (
+            <span
+              className={`inline-flex h-6 w-6 items-center justify-center rounded text-xs font-bold text-white ${severityColor}`}
+            >
+              {report.severity}
+            </span>
+          )}
           <span
-            className={`inline-flex h-6 w-6 items-center justify-center rounded text-xs font-bold text-white ${severityColor}`}
+            className={
+              "text-sm font-semibold capitalize " +
+              (isEnded ? "text-slate-400 line-through" : "text-slate-100")
+            }
           >
-            {report.severity}
-          </span>
-          <span className="text-sm font-semibold capitalize text-slate-100">
             {report.disaster_type.replace(/_/g, " ")}
           </span>
-          <span className="text-xs text-slate-400">
-            confidence {Math.round(report.disaster_type_confidence * 100)}%
-          </span>
+          {isEnded ? (
+            <span className="rounded bg-slate-600/30 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-slate-300">
+              RESOLVED
+            </span>
+          ) : (
+            <span className="text-xs text-slate-400">
+              confidence {Math.round(report.disaster_type_confidence * 100)}%
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1 text-xs text-slate-400">
           <Clock className="h-3 w-3" />
@@ -167,17 +210,46 @@ function LiveReportCard({ report }: { report: LiveReport }) {
                 : "location not provided")}
           </span>
         </div>
-        <span
-          className={`rounded px-2 py-0.5 font-medium ${
-            report.routing_recommendation === "deep_lane"
-              ? "bg-orange-500/20 text-orange-200"
-              : "bg-emerald-500/20 text-emerald-200"
-          }`}
-        >
-          {report.routing_recommendation === "deep_lane"
-            ? "DEEP LANE"
-            : "FAST LANE"}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className={`rounded px-2 py-0.5 font-medium ${
+              isEnded
+                ? "bg-slate-600/20 text-slate-400"
+                : report.routing_recommendation === "deep_lane"
+                  ? "bg-orange-500/20 text-orange-200"
+                  : "bg-emerald-500/20 text-emerald-200"
+            }`}
+          >
+            {report.routing_recommendation === "deep_lane"
+              ? "DEEP LANE"
+              : "FAST LANE"}
+          </span>
+          {isEnded ? (
+            <span className="text-[10px] text-slate-500">
+              Resolved
+              {report._resolved_at
+                ? ` ${relativeTime(report._resolved_at)}`
+                : ""}
+            </span>
+          ) : (
+            <button
+              type="button"
+              disabled={isResolving}
+              onClick={async () => {
+                setIsResolving(true);
+                const ok = await onResolve();
+                if (!ok) setIsResolving(false);
+                // If ok, the optimistic update from the hook flips
+                // _status to "ended" so this card re-renders with the
+                // resolved branch — no need to clear isResolving.
+              }}
+              className="inline-flex items-center gap-1 rounded border border-emerald-400/40 bg-emerald-500/10 px-2 py-0.5 font-medium text-emerald-200 transition hover:bg-emerald-500/20 disabled:opacity-50"
+            >
+              <Check className="h-3 w-3" />
+              {isResolving ? "Resolving…" : "Resolve"}
+            </button>
+          )}
+        </div>
       </footer>
     </article>
   );

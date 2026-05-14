@@ -99,6 +99,40 @@ function createLiveReportIcon(severity: number) {
 }
 
 /**
+ * Resolved-live marker: grey, no pulse, white checkmark in the centre.
+ * Used when an operator has marked the report as ended from the dashboard.
+ */
+function createResolvedLiveReportIcon() {
+  const size = 28;
+  const grey = "#64748b"; // slate-500
+  return new DivIcon({
+    className: "",
+    html: `
+      <div style="position:relative;width:${size}px;height:${size}px;">
+        <div style="
+          position:absolute;inset:0;
+          border-radius:9999px;
+          border:2px solid ${grey};
+          background:${grey}33;
+          opacity:0.75;
+        "></div>
+        <div style="
+          position:absolute;top:50%;left:50%;
+          transform:translate(-50%,-50%);
+          width:18px;height:18px;
+          display:flex;align-items:center;justify-content:center;
+          color:#e2e8f0;font-weight:700;font-size:14px;
+          line-height:1;
+        ">&#10003;</div>
+      </div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
+  });
+}
+
+/**
  * react-leaflet child that fits the map's bounds to the union of scenario +
  * live points whenever `active` is true. Pulled out into its own component
  * because hooks like useMap() must be called inside a MapContainer.
@@ -223,7 +257,9 @@ export function FloodMapClient({ filter = "all" }: FloodMapClientProps) {
           );
         })}
 
-        {liveWithLocation.map((report) => (
+        {liveWithLocation.map((report) => {
+          const isEnded = (report._status ?? "active") === "ended";
+          return (
           <Marker
             key={`live-${report.report_id}`}
             position={
@@ -232,13 +268,21 @@ export function FloodMapClient({ filter = "all" }: FloodMapClientProps) {
                 report.location.lon as number,
               ] as LatLngExpression
             }
-            icon={createLiveReportIcon(report.severity)}
+            icon={
+              isEnded
+                ? createResolvedLiveReportIcon()
+                : createLiveReportIcon(report.severity)
+            }
           >
             <Popup>
               <div className="space-y-1 text-sm">
                 <strong>
-                  <span style={{ color: "#059669" }}>● LIVE</span> ·{" "}
-                  {report.location.label ?? "Unknown location"}
+                  {isEnded ? (
+                    <span style={{ color: "#64748b" }}>✓ RESOLVED</span>
+                  ) : (
+                    <span style={{ color: "#059669" }}>● LIVE</span>
+                  )}{" "}
+                  · {report.location.label ?? "Unknown location"}
                 </strong>
                 <div>
                   <span className="font-semibold">
@@ -255,7 +299,8 @@ export function FloodMapClient({ filter = "all" }: FloodMapClientProps) {
               </div>
             </Popup>
           </Marker>
-        ))}
+          );
+        })}
 
         <FitBoundsController active={autoFit} points={combinedPoints} />
       </MapContainer>

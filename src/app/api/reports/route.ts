@@ -22,7 +22,50 @@ import type { EdgeTriageReport } from "@/lib/types";
 const REPORTS_KEY = "grg:reports";
 const MAX_REPORTS = 500;
 
-type StoredReport = EdgeTriageReport & { _received_at: string };
+export type ReportStatus = "active" | "ended";
+
+export type StoredReport = EdgeTriageReport & {
+  _received_at: string;
+  /** "active" by default; flipped to "ended" via PATCH /api/reports/[id]. */
+  _status?: ReportStatus;
+  /** ISO timestamp set when _status flipped to "ended". */
+  _resolved_at?: string | null;
+};
+
+/**
+ * Server-side reverse geocoding via BigDataCloud's free no-key endpoint.
+ * Used to recover a human-readable label when the phone uploaded a report
+ * with lat/lon but a null label (typical when the phone-side `Geocoder`
+ * failed for lack of connectivity at triage time).
+ *
+ * Returns `null` if the lookup fails or no useful fields come back.
+ */
+async function reverseGeocodeLabel(
+  lat: number,
+  lon: number,
+): Promise<string | null> {
+  try {
+    const url =
+      `https://api.bigdatacloud.net/data/reverse-geocode-client` +
+      `?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      city?: string;
+      locality?: string;
+      principalSubdivision?: string;
+      countryName?: string;
+    };
+    const parts = [
+      data.city || data.locality,
+      data.principalSubdivision,
+      data.countryName,
+    ].filter((s) => typeof s === "string" && s.length > 0);
+    return parts.length > 0 ? parts.join(", ") : null;
+  } catch {
+    return null;
+  }
+}
 
 // Lazy-init so local dev without Redis env vars doesn't crash.
 //
@@ -108,7 +151,32 @@ export async function POST(req: NextRequest) {
 
   const report = body;
   const received_at = new Date().toISOString();
-  const stored: StoredReport = { ...report, _received_at: received_at };
+
+  // If the phone uploaded a lat/lon without a label (e.g. it was offline at
+  // triage time and the platform Geocoder couldn't reach Google's service),
+  // try to fill the label server-side. Best-effort — falls through to no
+  // label on any failure rather than rejecting the upload.
+  let label = report.location?.label ?? null;
+  const lat = report.location?.lat;
+  const lon = report.location?.lon;
+  if (
+    (label === null || label === "") &&
+    typeof lat === "number" &&
+    typeof lon === "number"
+  ) {
+    label = await reverseGeocodeLabel(lat, lon);
+  }
+
+  const stored: StoredReport = {
+    ...report,
+    location: {
+      ...report.location,
+      label: label ?? report.location?.label ?? null,
+    },
+    _received_at: received_at,
+    _status: "active",
+    _resolved_at: null,
+  };
 
   try {
     await redis.lpush(REPORTS_KEY, JSON.stringify(stored));
@@ -122,6 +190,7 @@ export async function POST(req: NextRequest) {
     ok: true,
     report_id: report.report_id,
     received_at,
+    resolved_label: label,
   });
 }
 
