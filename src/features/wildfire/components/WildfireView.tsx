@@ -1,6 +1,5 @@
 import { DashboardOverview } from "@/features/dashboard/components/DashboardOverview";
 import { LocalAiMode } from "@/features/dashboard/components/LocalAiMode";
-import { DemoReadinessPanel } from "@/features/demo/components/DemoReadinessPanel";
 import { EnvironmentStats } from "@/features/environment/components/EnvironmentStats";
 import { HazardAnalysisPanel } from "@/features/hazard-analysis/components/HazardAnalysisPanel";
 import { IncidentFeed } from "@/features/incidents/components/IncidentFeed";
@@ -15,8 +14,10 @@ type WildfireViewProps = {
 };
 
 /**
- * The Wildfire Monitoring tab: live NASA FIRMS satellite hotspots across
- * Indonesia, with the original NusaSiaga dashboard components.
+ * Wildfire monitoring view: global NASA FIRMS VIIRS satellite hotspots,
+ * environmental impact stats, regional incident feed, plus the live
+ * field-reports panel so phone uploads with disaster_type="fire" surface
+ * here alongside the satellite signal.
  */
 export function WildfireView({ hotspotData }: WildfireViewProps) {
   return (
@@ -27,7 +28,6 @@ export function WildfireView({ hotspotData }: WildfireViewProps) {
       <IncomingReportsPanel />
       <EnvironmentStats />
       <IncidentFeed />
-      <DemoReadinessPanel />
       <ReportGrid reports={reports} />
       <LocalAiMode />
     </>
