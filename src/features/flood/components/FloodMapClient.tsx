@@ -9,8 +9,8 @@ import {
   TileLayer,
   useMap,
 } from "react-leaflet";
-import { useFloodScenario } from "./FloodScenarioContext";
 import { useLiveReports } from "@/lib/use-live-reports";
+import { SCENARIOS, SCENARIO_ORDER } from "@/lib/scenarios";
 import type { DisasterType } from "@/lib/types";
 
 type DisasterFilter = DisasterType | "all";
@@ -128,18 +128,32 @@ function FitBoundsController({
 }
 
 export function FloodMapClient({ filter = "all" }: FloodMapClientProps) {
-  const { scenario } = useFloodScenario();
   const { reports: liveReports } = useLiveReports();
   const [autoFit, setAutoFit] = useState(false);
+
+  // Union all scenarios' EdgeTriageReports into one merged set. The map is
+  // an operational view across every scenario the platform supports, not a
+  // scenario-specific surface anymore. The synthesis panel below the map
+  // is still per-scenario; only this map is unified.
+  const allScenarioReports = useMemo(
+    () => SCENARIO_ORDER.flatMap((id) => SCENARIOS[id].reports),
+    [],
+  );
+
+  // Default map center: use Scenario A's centre as a reasonable default so
+  // the initial view shows the densest cluster of pre-baked reports. Users
+  // can toggle Fit-to-all to snap to a worldwide bounds covering live pins.
+  const defaultCenter = SCENARIOS.A.mapCenter;
+  const defaultZoom = SCENARIOS.A.mapZoom;
 
   // Apply the disaster-type filter to both source sets. "all" is the
   // identity filter (everything passes through).
   const filteredScenarioReports = useMemo(
     () =>
       filter === "all"
-        ? scenario.reports
-        : scenario.reports.filter((r) => r.disaster_type === filter),
-    [scenario.reports, filter],
+        ? allScenarioReports
+        : allScenarioReports.filter((r) => r.disaster_type === filter),
+    [allScenarioReports, filter],
   );
 
   const liveWithLocation = useMemo(
@@ -169,9 +183,8 @@ export function FloodMapClient({ filter = "all" }: FloodMapClientProps) {
   return (
     <div className="relative">
       <MapContainer
-        key={scenario.id}
-        center={scenario.mapCenter as LatLngExpression}
-        zoom={scenario.mapZoom}
+        center={defaultCenter as LatLngExpression}
+        zoom={defaultZoom}
         scrollWheelZoom={false}
         className="h-[420px] w-full"
       >

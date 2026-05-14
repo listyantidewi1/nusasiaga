@@ -61,7 +61,7 @@ export function FloodMap() {
         </div>
         <div className="flex flex-wrap gap-2">
           <div className="rounded-full border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm text-sky-200">
-            Active scenario: {scenario.shortLabel} ({reports.length} reports)
+            Synthesis below: {scenario.shortLabel} · {reports.length} reports
           </div>
           {immediateZones > 0 && (
             <div className="rounded-full border border-red-400/30 bg-red-500/10 px-4 py-2 text-sm text-red-200">
