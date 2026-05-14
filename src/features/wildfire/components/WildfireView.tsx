@@ -4,6 +4,7 @@ import { DemoReadinessPanel } from "@/features/demo/components/DemoReadinessPane
 import { EnvironmentStats } from "@/features/environment/components/EnvironmentStats";
 import { HazardAnalysisPanel } from "@/features/hazard-analysis/components/HazardAnalysisPanel";
 import { IncidentFeed } from "@/features/incidents/components/IncidentFeed";
+import { IncomingReportsPanel } from "@/features/live-reports/components/IncomingReportsPanel";
 import { DisasterMap } from "@/features/maps/components/DisasterMap";
 import { ReportGrid } from "@/features/reports/components/ReportGrid";
 import type { DashboardHotspotsPayload } from "@/lib/dashboard-hotspots";
@@ -23,6 +24,7 @@ export function WildfireView({ hotspotData }: WildfireViewProps) {
       <DashboardOverview />
       <DisasterMap data={hotspotData} />
       <HazardAnalysisPanel />
+      <IncomingReportsPanel />
       <EnvironmentStats />
       <IncidentFeed />
       <DemoReadinessPanel />

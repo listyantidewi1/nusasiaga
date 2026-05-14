@@ -5,6 +5,7 @@ import { FloodSampleCard } from "./FloodSampleCard";
 import { FloodScenarioProvider } from "./FloodScenarioContext";
 import { FloodStats } from "./FloodStats";
 import { FloodSynthesisPanel } from "./FloodSynthesisPanel";
+import { IncomingReportsPanel } from "@/features/live-reports/components/IncomingReportsPanel";
 import { OfflineResiliencePanel } from "@/features/offline/components/OfflineResiliencePanel";
 import type { ScenarioId } from "@/lib/scenarios";
 
@@ -29,6 +30,7 @@ export function FloodView({ initial = "A" }: FloodViewProps) {
       </div>
       <FloodMap />
       <FloodSynthesisPanel />
+      <IncomingReportsPanel />
       <FloodStats />
       <FloodReportFeed />
       <OfflineResiliencePanel />
