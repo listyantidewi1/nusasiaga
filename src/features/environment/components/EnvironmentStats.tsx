@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { EnvironmentStatCard } from "./EnvironmentStatCard";
 import type { DashboardHotspot } from "@/lib/dashboard-hotspots";
+import { useUserLocation } from "@/lib/use-user-location";
 
 type Tone =
   | "amber"
@@ -38,34 +39,6 @@ type Props = {
    * query to where the action is, and to derive FRP-based metrics. */
   hotspots?: DashboardHotspot[];
 };
-
-/**
- * Computes a centroid weighted by Fire Radiative Power so the AQI/wind
- * query lands near the worst active fire cluster. If no hotspots have FRP,
- * falls back to a simple mean. If the list is empty, returns null and the
- * API uses its default location (central Jakarta).
- */
-function frpCentroid(
-  hotspots: DashboardHotspot[],
-): { lat: number; lon: number } | null {
-  if (hotspots.length === 0) return null;
-  // Consider only the top-20 by risk_score so a single intense fire dominates
-  // the anchor rather than getting averaged out by hundreds of low-FRP pixels.
-  const top = [...hotspots]
-    .sort((a, b) => b.risk_score - a.risk_score)
-    .slice(0, 20);
-  let wLatSum = 0;
-  let wLonSum = 0;
-  let wSum = 0;
-  for (const h of top) {
-    const w = Math.max(h.frp ?? 0, 1);
-    wLatSum += h.lat * w;
-    wLonSum += h.lon * w;
-    wSum += w;
-  }
-  if (wSum === 0) return { lat: top[0].lat, lon: top[0].lon };
-  return { lat: wLatSum / wSum, lon: wLonSum / wSum };
-}
 
 /**
  * Very rough modelled estimate of CO2 release from a set of fire pixels.
@@ -173,18 +146,20 @@ function smokeSpreadRisk(env: EnvironmentResponse | null): {
 }
 
 export function EnvironmentStats({ hotspots = [] }: Props) {
-  const centroid = useMemo(() => frpCentroid(hotspots), [hotspots]);
+  const { location } = useUserLocation();
   const [env, setEnv] = useState<EnvironmentResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Wait until the location-resolution hook has settled (GPS / IP /
+    // default). Otherwise the first fetch would always go to Jakarta.
+    if (!location) return;
     let cancelled = false;
     setLoading(true);
-    const params = new URLSearchParams();
-    if (centroid) {
-      params.set("lat", centroid.lat.toFixed(4));
-      params.set("lon", centroid.lon.toFixed(4));
-    }
+    const params = new URLSearchParams({
+      lat: location.lat.toFixed(4),
+      lon: location.lon.toFixed(4),
+    });
     fetch(`/api/environment?${params.toString()}`, { cache: "no-store" })
       .then((r) => (r.ok ? (r.json() as Promise<EnvironmentResponse>) : null))
       .then((data) => {
@@ -199,7 +174,7 @@ export function EnvironmentStats({ hotspots = [] }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [centroid]);
+  }, [location]);
 
   const aqi = env?.aqi ?? null;
   const wind = env?.wind ?? null;
@@ -219,7 +194,9 @@ export function EnvironmentStats({ hotspots = [] }: Props) {
       label: "Live AQI",
       value: aqi ? `${aqi.value}` : loading ? "…" : "—",
       detail: aqi
-        ? `${aqi.label} — Open-Meteo air-quality reading at the highest-FRP cluster.`
+        ? `${aqi.label} — Open-Meteo air-quality reading at your current location${
+            location?.label ? ` (${location.label})` : ""
+          }.`
         : "Awaiting Open-Meteo air-quality response.",
       tone:
         aqi == null
@@ -241,7 +218,7 @@ export function EnvironmentStats({ hotspots = [] }: Props) {
           ? "…"
           : "—",
       detail: wind
-        ? `Surface wind from Open-Meteo (10 m). Plume direction follows the bearing.`
+        ? `Surface wind from Open-Meteo (10 m) at your current location. Plume direction follows the bearing.`
         : "Awaiting Open-Meteo weather response.",
       tone: "sky",
     },
@@ -286,15 +263,24 @@ export function EnvironmentStats({ hotspots = [] }: Props) {
 
   return (
     <section className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl">
-      <div className="mb-5">
-        <h2 className="text-2xl font-bold tracking-tight">
-          Environmental Intelligence Stats
-        </h2>
-        <p className="mt-1 text-sm text-slate-400">
-          Live air quality + wind from Open-Meteo, anchored at the highest-FRP
-          fire cluster. Carbon and priority metrics computed from the current
-          NASA FIRMS pass.
-        </p>
+      <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">
+            Environmental Intelligence Stats
+          </h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Live air quality + wind from Open-Meteo, anchored at{" "}
+            <strong>your current location</strong>. Carbon and priority metrics
+            computed from the current NASA FIRMS pass worldwide.
+          </p>
+        </div>
+        {location && (
+          <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-slate-300">
+            {location.source === "gps" && "📍 GPS"}
+            {location.source === "ip" && `🌐 ${location.label ?? "IP location"}`}
+            {location.source === "default" && "📌 Default (Jakarta)"}
+          </span>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
