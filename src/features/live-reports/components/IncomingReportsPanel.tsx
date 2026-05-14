@@ -1,10 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Radio, AlertTriangle, Clock, MapPin, Users, Check, CheckCircle2 } from "lucide-react";
+import {
+  Radio,
+  AlertTriangle,
+  Clock,
+  MapPin,
+  Users,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { useLiveReports, type LiveReport } from "@/lib/use-live-reports";
 import type { DisasterType } from "@/lib/types";
+
+const COLLAPSED_PAGE_SIZE = 5;
 
 type IncomingReportsPanelProps = {
   /**
@@ -28,14 +40,31 @@ export function IncomingReportsPanel({
 }: IncomingReportsPanelProps) {
   const { reports, loading, error, lastFetchedAt, resolveReport } =
     useLiveReports();
+  const [expanded, setExpanded] = useState(false);
 
-  const filtered = filterDisasterTypes
-    ? reports.filter((r) => filterDisasterTypes.includes(r.disaster_type))
-    : reports;
+  const filtered = useMemo(() => {
+    const base = filterDisasterTypes
+      ? reports.filter((r) => filterDisasterTypes.includes(r.disaster_type))
+      : reports;
+    // Sort: active first (newest first), then resolved (most recently
+    // resolved first). The newest active report is what an operator
+    // wants to see at a glance.
+    return [...base].sort((a, b) => {
+      const aActive = (a._status ?? "active") === "active";
+      const bActive = (b._status ?? "active") === "active";
+      if (aActive !== bActive) return aActive ? -1 : 1;
+      return b._received_at.localeCompare(a._received_at);
+    });
+  }, [reports, filterDisasterTypes]);
 
   const activeCount = filtered.filter(
     (r) => (r._status ?? "active") === "active",
   ).length;
+
+  const displayed = expanded
+    ? filtered
+    : filtered.slice(0, COLLAPSED_PAGE_SIZE);
+  const hiddenCount = filtered.length - displayed.length;
 
   return (
     <section className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-5">
@@ -73,24 +102,45 @@ export function IncomingReportsPanel({
             : "No live reports yet. Reports uploaded from the Android edge app will appear here within ~10 seconds."}
         </p>
       ) : (
-        <div className="space-y-3">
-          <AnimatePresence initial={false}>
-            {filtered.map((report) => (
-              <motion.div
-                key={report.report_id}
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 16 }}
-                transition={{ duration: 0.25 }}
-              >
-                <LiveReportCard
-                  report={report}
-                  onResolve={() => resolveReport(report.report_id)}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
+        <>
+          <div className="space-y-3">
+            <AnimatePresence initial={false}>
+              {displayed.map((report) => (
+                <motion.div
+                  key={report.report_id}
+                  initial={{ opacity: 0, x: -16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 16 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <LiveReportCard
+                    report={report}
+                    onResolve={() => resolveReport(report.report_id)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+          {(hiddenCount > 0 || expanded) && filtered.length > COLLAPSED_PAGE_SIZE && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-950/40 px-3 py-2 text-xs font-medium text-emerald-200 transition hover:bg-emerald-950/60"
+            >
+              {expanded ? (
+                <>
+                  <ChevronUp className="h-3.5 w-3.5" />
+                  Collapse to {COLLAPSED_PAGE_SIZE} most recent
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-3.5 w-3.5" />
+                  Show all {filtered.length} reports ({hiddenCount} hidden)
+                </>
+              )}
+            </button>
+          )}
+        </>
       )}
     </section>
   );
