@@ -26,7 +26,7 @@ type WildfireViewProps = {
 export function WildfireView({ hotspotData }: WildfireViewProps) {
   return (
     <>
-      <DashboardOverview />
+      <DashboardOverview hotspots={hotspotData.hotspots} />
       <DisasterMap data={hotspotData} />
       <IncomingReportsPanel />
       <EnvironmentStats hotspots={hotspotData.hotspots} />
