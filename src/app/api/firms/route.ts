@@ -2,21 +2,6 @@ import { NextResponse } from "next/server";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type FirmsRow = {
-  latitude: string;
-  longitude: string;
-  brightness?: string;
-  bright_ti4?: string;
-  frp: string;
-  confidence: string;
-  acq_date: string;
-  acq_time?: string;
-  satellite?: string;
-  instrument?: string;
-  version?: string;
-  daynight?: string;
-};
-
 type ScoredHotspot = {
   id: string;
   lat: number;
@@ -38,10 +23,17 @@ type ScoredHotspot = {
 
 const MAP_KEY = process.env.NASA_FIRMS_MAP_KEY ?? "";
 
-// Indonesia bounding box: west, south, east, north
-const INDONESIA_BBOX = "95,-11,141,6";
+// World bounding box: west, south, east, north. FIRMS accepts the global
+// area; the response is capped server-side to whatever fits the API's
+// per-request size budget and we additionally cap client-side after CSV
+// parsing (see parseFirmsCsv -> .slice(0, MAX_GLOBAL_HOTSPOTS)).
+const GLOBAL_BBOX = "-180,-90,180,90";
 
-const FIRMS_URL = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${MAP_KEY}/VIIRS_SNPP_NRT/${INDONESIA_BBOX}/1`;
+// Cap the rendered set so the browser doesn't try to mount a thousand
+// Leaflet markers. 500 is comfortable; bump if FRP variance is high.
+const MAX_GLOBAL_HOTSPOTS = 500;
+
+const FIRMS_URL = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${MAP_KEY}/VIIRS_SNPP_NRT/${GLOBAL_BBOX}/1`;
 
 // Cache response for 30 minutes to avoid hammering NASA API
 let cache: { data: unknown; fetchedAt: number } | null = null;
@@ -127,13 +119,34 @@ const PEATLAND_ZONES: [number, number, number, number][] = [
   [-8.0, -4.0, 137.0, 141.0],
 ];
 
-function lookupProvince(lat: number, lon: number): [string, string] {
+// Coarse continental bounding boxes for fallback when a hotspot lies outside
+// the Indonesian provinces lookup above. Format: [latMin, latMax, lonMin, lonMax, region, sub]
+const CONTINENT_BOUNDS: [number, number, number, number, string, string][] = [
+  [15, 72, -170, -50, "North America", "Continental US / Canada / Mexico"],
+  [-55, 15, -82, -34, "South America", "Brazil / Andes / Patagonia"],
+  [35, 72, -10, 40, "Europe", "Western / Central Europe"],
+  [35, 72, 40, 60, "Europe", "Eastern Europe / Western Russia"],
+  [-35, 37, -20, 52, "Africa", "Continental Africa"],
+  [-50, 0, 110, 180, "Oceania", "Australia / New Zealand / Pacific"],
+  [0, 72, 40, 95, "Asia (West/South)", "South Asia / Middle East"],
+  [0, 72, 95, 141, "Asia (East)", "China / Japan / SE Asia mainland"],
+  [0, 72, 141, 180, "Asia (Far East)", "Far East Russia / North Pacific"],
+];
+
+function lookupRegion(lat: number, lon: number): [string, string] {
+  // Indonesia detail first (these bounds overlap with Asia continental box but
+  // are more specific, so they win).
   for (const [latMin, latMax, lonMin, lonMax, province, regency] of PROVINCE_BOUNDS) {
     if (lat >= latMin && lat <= latMax && lon >= lonMin && lon <= lonMax) {
       return [province, regency];
     }
   }
-  return ["Indonesia", "Unknown regency"];
+  for (const [latMin, latMax, lonMin, lonMax, region, sub] of CONTINENT_BOUNDS) {
+    if (lat >= latMin && lat <= latMax && lon >= lonMin && lon <= lonMax) {
+      return [region, sub];
+    }
+  }
+  return ["International", "Unclassified region"];
 }
 
 function isPeatland(lat: number, lon: number): boolean {
@@ -215,8 +228,8 @@ function parseFirmsCsv(csv: string): ScoredHotspot[] {
       const lon = parseFloat(row.longitude);
       if (isNaN(lat) || isNaN(lon)) continue;
 
-      // Validate Indonesia bounds
-      if (lat < -11 || lat > 6 || lon < 95 || lon > 141) continue;
+      // Sanity-check global bounds (some FIRMS rows have malformed coords).
+      if (lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
 
       const brightnessRaw = row.brightness ?? row.bright_ti4 ?? "300";
       const brightness = parseFloat(brightnessRaw) || 300;
@@ -225,7 +238,7 @@ function parseFirmsCsv(csv: string): ScoredHotspot[] {
       const satellite = row.satellite ?? row.instrument ?? "VIIRS";
       const acqDate = row.acq_date ?? "unknown";
 
-      const [province, regency] = lookupProvince(lat, lon);
+      const [province, regency] = lookupRegion(lat, lon);
       const peat = isPeatland(lat, lon);
       const riskScore = computeRiskScore(frp, brightness, confidence);
       const severity = classifySeverity(riskScore);
@@ -251,10 +264,11 @@ function parseFirmsCsv(csv: string): ScoredHotspot[] {
     }
   }
 
-  // Sort by risk_score descending, cap at 200 hotspots for performance
+  // Sort by risk_score descending, cap at MAX_GLOBAL_HOTSPOTS so the
+  // browser doesn't try to render thousands of markers worldwide.
   return results
     .sort((a, b) => b.risk_score - a.risk_score)
-    .slice(0, 200);
+    .slice(0, MAX_GLOBAL_HOTSPOTS);
 }
 
 // ─── Summary builder ──────────────────────────────────────────────────────────
