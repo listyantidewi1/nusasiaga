@@ -29,7 +29,7 @@ export function WildfireView({ hotspotData }: WildfireViewProps) {
       <DashboardOverview />
       <DisasterMap data={hotspotData} />
       <IncomingReportsPanel />
-      <EnvironmentStats />
+      <EnvironmentStats hotspots={hotspotData.hotspots} />
       <IncidentFeed />
       <ReportGrid reports={reports} />
     </>
