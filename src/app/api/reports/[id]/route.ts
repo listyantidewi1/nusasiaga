@@ -125,6 +125,9 @@ export async function PATCH(
     ...foundEntry,
     _status: body.status,
     _resolved_at: body.status === "ended" ? new Date().toISOString() : null,
+    // Resolved via the shared-secret PATCH path = the reporter (phone)
+    // or an operator. Distinguishes from crowd votes via /vote.
+    _resolved_by: body.status === "ended" ? "reporter" : null,
   };
 
   try {

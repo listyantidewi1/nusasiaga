@@ -13,7 +13,11 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { useLiveReports, type LiveReport } from "@/lib/use-live-reports";
+import {
+  useLiveReports,
+  RESOLVE_VOTE_THRESHOLD,
+  type LiveReport,
+} from "@/lib/use-live-reports";
 import type { DisasterType } from "@/lib/types";
 
 const COLLAPSED_PAGE_SIZE = 5;
@@ -38,7 +42,7 @@ export function IncomingReportsPanel({
   filterDisasterTypes,
   title = "Live field reports",
 }: IncomingReportsPanelProps) {
-  const { reports, loading, error, lastFetchedAt, resolveReport } =
+  const { reports, loading, error, lastFetchedAt, voteToResolve } =
     useLiveReports();
   const [expanded, setExpanded] = useState(false);
 
@@ -115,7 +119,7 @@ export function IncomingReportsPanel({
                 >
                   <LiveReportCard
                     report={report}
-                    onResolve={() => resolveReport(report.report_id)}
+                    onVote={() => voteToResolve(report.report_id)}
                   />
                 </motion.div>
               ))}
@@ -148,13 +152,20 @@ export function IncomingReportsPanel({
 
 function LiveReportCard({
   report,
-  onResolve,
+  onVote,
 }: {
   report: LiveReport;
-  onResolve: () => Promise<boolean>;
+  onVote: () => Promise<{
+    ok: boolean;
+    vote_count: number;
+    already_voted: boolean;
+    flipped_to_ended: boolean;
+  }>;
 }) {
-  const [isResolving, setIsResolving] = useState(false);
+  const [isVoting, setIsVoting] = useState(false);
   const isEnded = (report._status ?? "active") === "ended";
+  const voteCount = report._resolve_votes?.length ?? 0;
+  const resolvedBy = report._resolved_by ?? null;
   const severityColor = severityToColor(report.severity);
   const ago = relativeTime(report._received_at);
   const people = report.people_visible;
@@ -277,6 +288,7 @@ function LiveReportCard({
           {isEnded ? (
             <span className="text-[10px] text-slate-500">
               Resolved
+              {resolvedBy ? ` (${resolvedBy})` : ""}
               {report._resolved_at
                 ? ` ${relativeTime(report._resolved_at)}`
                 : ""}
@@ -284,19 +296,30 @@ function LiveReportCard({
           ) : (
             <button
               type="button"
-              disabled={isResolving}
+              disabled={isVoting}
               onClick={async () => {
-                setIsResolving(true);
-                const ok = await onResolve();
-                if (!ok) setIsResolving(false);
-                // If ok, the optimistic update from the hook flips
-                // _status to "ended" so this card re-renders with the
-                // resolved branch — no need to clear isResolving.
+                setIsVoting(true);
+                const res = await onVote();
+                // Whether the vote succeeded or not, we let the hook's
+                // optimistic update + the next polling cycle settle the
+                // card; just clear the local in-flight flag.
+                setIsVoting(false);
+                if (res.already_voted) {
+                  // The hook didn't show a re-update because it's
+                  // already-voted; we don't need to do anything else.
+                }
               }}
               className="inline-flex items-center gap-1 rounded border border-emerald-400/40 bg-emerald-500/10 px-2 py-0.5 font-medium text-emerald-200 transition hover:bg-emerald-500/20 disabled:opacity-50"
+              title={
+                voteCount > 0
+                  ? `${voteCount} of ${RESOLVE_VOTE_THRESHOLD} votes cast`
+                  : "Vote to mark this report resolved"
+              }
             >
               <Check className="h-3 w-3" />
-              {isResolving ? "Resolving…" : "Resolve"}
+              {isVoting
+                ? "Voting…"
+                : `Vote to resolve (${voteCount}/${RESOLVE_VOTE_THRESHOLD})`}
             </button>
           )}
         </div>
