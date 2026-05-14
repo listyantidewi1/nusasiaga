@@ -25,14 +25,28 @@ const MAX_REPORTS = 500;
 type StoredReport = EdgeTriageReport & { _received_at: string };
 
 // Lazy-init so local dev without Redis env vars doesn't crash.
+//
+// The Vercel Marketplace Upstash integration injects env vars named
+// KV_REST_API_URL / KV_REST_API_TOKEN (backwards-compatible with the old
+// @vercel/kv SDK). The @upstash/redis SDK's Redis.fromEnv() reads
+// UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN. We try fromEnv first
+// for users who manually set the canonical names, then fall back to the
+// KV_* names the Vercel integration provides.
 let cached: Redis | null | undefined = undefined;
 function getRedis(): Redis | null {
   if (cached !== undefined) return cached;
+  // Try the @upstash/redis canonical env names first.
   try {
     cached = Redis.fromEnv();
+    return cached;
   } catch {
-    cached = null;
+    // fall through to KV_* names below
   }
+  const url =
+    process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
+  const token =
+    process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
+  cached = url && token ? new Redis({ url, token }) : null;
   return cached;
 }
 
