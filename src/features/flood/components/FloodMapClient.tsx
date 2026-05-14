@@ -11,6 +11,17 @@ import {
 } from "react-leaflet";
 import { useFloodScenario } from "./FloodScenarioContext";
 import { useLiveReports } from "@/lib/use-live-reports";
+import type { DisasterType } from "@/lib/types";
+
+type DisasterFilter = DisasterType | "all";
+
+type FloodMapClientProps = {
+  /**
+   * Active disaster-type filter from the parent's chip bar. "all" shows
+   * every report; a specific type filters both scenario and live reports.
+   */
+  filter?: DisasterFilter;
+};
 
 const severityColor: Record<number, string> = {
   5: "#7f1d1d",
@@ -116,23 +127,36 @@ function FitBoundsController({
   return null;
 }
 
-export function FloodMapClient() {
+export function FloodMapClient({ filter = "all" }: FloodMapClientProps) {
   const { scenario } = useFloodScenario();
   const { reports: liveReports } = useLiveReports();
   const [autoFit, setAutoFit] = useState(false);
 
+  // Apply the disaster-type filter to both source sets. "all" is the
+  // identity filter (everything passes through).
+  const filteredScenarioReports = useMemo(
+    () =>
+      filter === "all"
+        ? scenario.reports
+        : scenario.reports.filter((r) => r.disaster_type === filter),
+    [scenario.reports, filter],
+  );
+
   const liveWithLocation = useMemo(
     () =>
       liveReports.filter(
-        (r) => r.location?.lat != null && r.location?.lon != null,
+        (r) =>
+          r.location?.lat != null &&
+          r.location?.lon != null &&
+          (filter === "all" || r.disaster_type === filter),
       ),
-    [liveReports],
+    [liveReports, filter],
   );
 
   // Memoise the combined point list so FitBoundsController's effect only
   // fires when locations actually change.
   const combinedPoints = useMemo<[number, number][]>(() => {
-    const scenarioPts: [number, number][] = scenario.reports
+    const scenarioPts: [number, number][] = filteredScenarioReports
       .filter((r) => r.location.lat != null && r.location.lon != null)
       .map((r) => [r.location.lat as number, r.location.lon as number]);
     const livePts: [number, number][] = liveWithLocation.map((r) => [
@@ -140,7 +164,7 @@ export function FloodMapClient() {
       r.location.lon as number,
     ]);
     return [...scenarioPts, ...livePts];
-  }, [scenario.reports, liveWithLocation]);
+  }, [filteredScenarioReports, liveWithLocation]);
 
   return (
     <div className="relative">
@@ -156,7 +180,7 @@ export function FloodMapClient() {
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
 
-        {scenario.reports.map((report) => {
+        {filteredScenarioReports.map((report) => {
           if (report.location.lat == null || report.location.lon == null)
             return null;
           return (

@@ -45,7 +45,7 @@ export const DASHBOARD_VIEWS: Record<DashboardViewId, DashboardView> = {
     shortLabel: "Wildfire",
     longLabel: "Wildfire",
     description:
-      "Live NASA FIRMS VIIRS satellite hotspot data across Indonesia, refreshed every 30 minutes. FRP-weighted risk scoring + provincial classification.",
+      "Live NASA FIRMS VIIRS satellite hotspot data, refreshed every 30 minutes. FRP-weighted risk scoring + regional classification.",
     status: "live",
     statusLabel: "Live",
   },
@@ -57,7 +57,7 @@ export const DASHBOARD_VIEWS: Record<DashboardViewId, DashboardView> = {
     shortLabel: "Flood",
     longLabel: "Flood",
     description:
-      "Rapid-onset central Jakarta · 12 EdgeTriageReports across a 90-minute window. Full Gemma 4 synthesis: 5 priority zones, 3 ranked actions, validity flags.",
+      "Rapid-onset flood · 12 EdgeTriageReports across a 90-minute window. Full Gemma 4 synthesis: 5 priority zones, 3 ranked actions, validity flags.",
     status: "ready",
     statusLabel: "Synthesis ready",
   },
@@ -69,7 +69,7 @@ export const DASHBOARD_VIEWS: Record<DashboardViewId, DashboardView> = {
     shortLabel: "Earthquake",
     longLabel: "Earthquake",
     description:
-      "Simulated Cianjur shallow quake · 15 reports across 2 hours. Three severity-5 incidents, school evacuation, hospital patient carry, gas leak, low-confidence ambiguity case.",
+      "Simulated shallow earthquake · 15 reports across 2 hours. Three severity-5 incidents, school evacuation, hospital patient carry, gas leak, low-confidence ambiguity case.",
     status: "pending",
     statusLabel: "Synthesis pending",
   },

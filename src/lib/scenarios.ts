@@ -43,10 +43,10 @@ export interface ScenarioBundle {
 export const SCENARIOS: Record<ScenarioId, ScenarioBundle> = {
   A: {
     id: "A",
-    shortLabel: "Jakarta flood",
-    title: "Rapid-onset Jakarta flood",
+    shortLabel: "Flood",
+    title: "Rapid-onset flood",
     description:
-      "12 field reports across a 90-minute window, central Jakarta. Mid-difficulty: multiple priority zones, recurring electrical hazards, one elderly evacuation, one possible trapped rider.",
+      "12 field reports across a 90-minute window. Mid-difficulty: multiple priority zones, recurring electrical hazards, one elderly evacuation, one possible trapped rider.",
     reports: scenarioAJson.reports as EdgeTriageReport[],
     synthesis: scenarioASynthesis,
     synthesisStatus: "generated",
@@ -56,10 +56,10 @@ export const SCENARIOS: Record<ScenarioId, ScenarioBundle> = {
   },
   B: {
     id: "B",
-    shortLabel: "Cianjur quake",
-    title: "Shallow earthquake — simulated Cianjur",
+    shortLabel: "Earthquake",
+    title: "Shallow earthquake",
     description:
-      "15 reports across a 2-hour window. Hardest case: three sev-5 incidents including mosque collapse with secondary minaret failure, school evacuation, hospital patient carry, market gas leak, one deliberately low-confidence ambiguous report.",
+      "15 reports across a 2-hour window. Hardest case: three sev-5 incidents including a building collapse with secondary structural failure, school evacuation, hospital patient carry, market gas leak, one deliberately low-confidence ambiguous report.",
     reports: scenarioBJson.reports as EdgeTriageReport[],
     synthesis: null,
     synthesisStatus: "pending",
@@ -70,7 +70,7 @@ export const SCENARIOS: Record<ScenarioId, ScenarioBundle> = {
   C: {
     id: "C",
     shortLabel: "Compound flood + fire",
-    title: "Compound flood + electrical fires — industrial zone",
+    title: "Compound flood + electrical fires",
     description:
       "8 reports across a 60-minute window. Different responders classify the primary disaster differently (fire vs flood vs building_collapse) — synthesis must produce a coherent compound classification.",
     reports: scenarioCJson.reports as EdgeTriageReport[],
