@@ -1,5 +1,5 @@
 /**
- * Gemma Rescue Grid — TypeScript types for the NusaSiaga dashboard.
+ * Gemma Disaster Grid — TypeScript types for the NusaSiaga dashboard.
  *
  * Mirrors the Pydantic schemas in `grg/schemas.py` of the gemma-disaster-grid
  * repo. Keep these in sync if the Python schemas evolve.

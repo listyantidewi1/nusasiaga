@@ -5,7 +5,7 @@ export function AppHeader() {
         <h1 className="text-2xl font-bold tracking-tight">
           NusaSiaga{" "}
           <span className="text-slate-400 font-medium">·</span>{" "}
-          <span className="text-emerald-300/90">Gemma Rescue Grid</span>
+          <span className="text-emerald-300/90">Gemma Disaster Grid</span>
         </h1>
         <p className="text-sm text-slate-400">
           Offline-first disaster intelligence for communities anywhere · Powered by Gemma 4

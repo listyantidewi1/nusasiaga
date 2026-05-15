@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NusaSiaga · Gemma Rescue Grid",
+  title: "NusaSiaga · Gemma Disaster Grid",
   description:
     "Offline-first disaster intelligence powered by Gemma 4 and NASA FIRMS. One operational picture across every disaster type: live satellite wildfire monitoring and offline-edge multimodal triage that runs on a responder's phone.",
 };

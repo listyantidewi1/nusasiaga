@@ -1,4 +1,4 @@
-# NusaSiaga · Gemma Rescue Grid
+# NusaSiaga · Gemma Disaster Grid
 
 **Offline-first disaster intelligence platform for communities anywhere, powered by Gemma 4. Same architecture, every disaster type, from the responder's phone to the command center.**
 
@@ -65,7 +65,7 @@ NASA FIRMS pipeline originally by [@NoesaaDecodes](https://github.com/NoesaaDeco
 
 Pre-baked demo: 12 field reports from a simulated rapid-onset central Jakarta flood (90-minute window). The synthesis JSON shown was produced by Gemma 4 E4B on Colab; will be regenerated from 31B on Kaggle for the final submission. Two more scenarios — a Cianjur-style shallow earthquake and a compound industrial flood + fire event — render as full operational dashboards once their synthesis runs on Day 4.
 
-Gemma Rescue Grid work in [listyantidewi1/gemma-disaster-grid](https://github.com/listyantidewi1/gemma-disaster-grid).
+Gemma Disaster Grid work — including the **Gemma Rescue Grid** Android app, the on-device E2B prompts, and the Kaggle 31B synthesis notebook — lives in [listyantidewi1/gemma-disaster-grid](https://github.com/listyantidewi1/gemma-disaster-grid).
 
 ---
 
@@ -89,7 +89,7 @@ Gemma Rescue Grid work in [listyantidewi1/gemma-disaster-grid](https://github.co
                \                            /
                 ▼                          ▼
         ┌─────────────────────────────────────┐
-        │   NusaSiaga · Gemma Rescue Grid     │
+        │   NusaSiaga · Gemma Disaster Grid   │
         │   Single unified disaster picker    │
         │   (Next.js, Tailwind, Vercel)       │
         └─────────────────────────────────────┘
@@ -116,7 +116,7 @@ src/
     offline/        Shared OfflineResiliencePanel
     reports/        Wildfire ReportGrid + Card
     wildfire/       Composition: WildfireView
-    flood/          Gemma Rescue Grid track
+    flood/          Gemma Disaster Grid track
       FloodHero, FloodMap, FloodMapClient, FloodMapLegend
       FloodSynthesisPanel, FloodReportFeed, FloodReportCard
       FloodStats, FloodSampleCard, FloodView
