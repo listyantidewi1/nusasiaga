@@ -43,7 +43,7 @@ export function FloodSampleCard() {
   const isLive = topLive != null;
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-red-950/70 to-slate-900 p-6">
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl">
       <div className="mb-4 flex items-center gap-2">
         {isLive ? (
           <span className="relative flex h-2.5 w-2.5">

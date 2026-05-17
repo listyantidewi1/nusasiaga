@@ -34,18 +34,18 @@ const capabilities = [
 
 export function OfflineResiliencePanel() {
   return (
-    <section className="mt-6 rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-6 shadow-2xl">
+    <section className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl">
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">
             Architecture · Same Gemma 4 family, edge to cloud
           </h2>
-          <p className="mt-1 text-sm text-slate-300">
+          <p className="mt-1 text-sm text-slate-400">
             Designed for the moments connectivity fails — where disaster
             coordination matters most.
           </p>
         </div>
-        <div className="rounded-full border border-emerald-400/30 bg-slate-950/50 px-4 py-2 text-sm text-emerald-200">
+        <div className="rounded-full border border-white/15 bg-slate-950/50 px-4 py-2 text-sm text-slate-300">
           Apache 2.0 · Open weights
         </div>
       </div>

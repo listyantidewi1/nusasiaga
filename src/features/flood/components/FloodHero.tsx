@@ -22,11 +22,11 @@ export function FloodHero() {
       <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-sky-500/10 px-4 py-2 text-sm text-sky-300">
         <Radio size={16} /> Demo scenario · {scenario.shortLabel}
       </div>
-      <h2 className="max-w-3xl text-5xl font-black leading-tight">
+      <h2 className="max-w-3xl text-3xl font-bold leading-tight tracking-tight">
         Same Gemma 4 family, from the responder&rsquo;s phone to the command
         center.
       </h2>
-      <p className="mt-5 max-w-2xl text-lg text-slate-300">
+      <p className="mt-3 max-w-2xl text-base text-slate-400">
         Field responders capture photos and voice notes on phones running
         Gemma 4 E2B fully offline. Reports queue locally and sync when
         connectivity returns. Gemma 4 31B consolidates them into one
